@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Mutual Non-Disclosure Agreement - Cover Page",
+    "description": "Cover page for the Common Paper Mutual NDA, where the parties set the purpose, term and other deal-specific details.",
+    "filename": "Mutual-NDA-coverpage.md"
+  },
+  {
+    "name": "Mutual Non-Disclosure Agreement - Standard Terms",
+    "description": "Common Paper standard terms for a mutual NDA, incorporated by the cover page.",
+    "filename": "Mutual-NDA.md"
+  },
+  {
+    "name": "Cloud Service Agreement",
+    "description": "Common Paper standard agreement for providing access to a cloud service (SaaS) on a subscription basis.",
+    "filename": "CSA.md"
+  },
+  {
+    "name": "Service Level Agreement",
+    "description": "Common Paper SLA covering target uptime, response times and remedies for a cloud service.",
+    "filename": "sla.md"
+  },
+  {
+    "name": "Data Processing Agreement",
+    "description": "Common Paper DPA governing processing of personal data between a controller and a processor or subprocessor.",
+    "filename": "DPA.md"
+  },
+  {
+    "name": "Design Partner Agreement",
+    "description": "Common Paper agreement giving a design partner early access to a product in exchange for feedback.",
+    "filename": "design-partner-agreement.md"
+  },
+  {
+    "name": "Professional Services Agreement",
+    "description": "Common Paper agreement for professional services performed under statements of work (SOWs).",
+    "filename": "psa.md"
+  },
+  {
+    "name": "Partnership Agreement",
+    "description": "Common Paper agreement setting out the obligations and terms of a business partnership between two parties.",
+    "filename": "Partnership-Agreement.md"
+  },
+  {
+    "name": "Business Associate Agreement",
+    "description": "Common Paper BAA for handling protected health information (PHI) in line with HIPAA.",
+    "filename": "BAA.md"
+  },
+  {
+    "name": "Software License Agreement",
+    "description": "Common Paper agreement licensing software to a customer to install and use.",
+    "filename": "Software-License-Agreement.md"
+  },
+  {
+    "name": "Pilot Agreement",
+    "description": "Common Paper agreement for a time-limited pilot or evaluation of a product.",
+    "filename": "Pilot-Agreement.md"
+  },
+  {
+    "name": "AI Addendum",
+    "description": "Common Paper addendum adding terms for AI services, inputs, outputs and training to an underlying agreement.",
+    "filename": "AI-Addendum.md"
+  }
+]
