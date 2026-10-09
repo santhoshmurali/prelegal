@@ -1,0 +1,13 @@
+.git
+.claude
+.env
+Tasktrackr.md
+**/node_modules
+**/.next
+**/out
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/*.db
+**/*.log
+frontend/tsconfig.tsbuildinfo
