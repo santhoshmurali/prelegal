@@ -45,18 +45,47 @@ export function defaultFields(today: string): NdaFields {
   };
 }
 
-const blank = (value: string, placeholder: string) =>
-  value.trim() || `[${placeholder}]`;
+// Escapes user text so it renders literally and cannot add Markdown structure
+// (headings, lists, checkboxes, links, tables) to the legal document.
+export function escapeMarkdown(value: string): string {
+  return value
+    .trim()
+    .replace(/[\\`*_[\]<>#|~]/g, "\\$&")
+    .split(/\r?\n/)
+    .map((line) =>
+      line
+        .replace(/^(\s*)([-+=])/, "$1\\$2")
+        .replace(/^(\s*\d+)([.)])/, "$1\\$2"),
+    )
+    .join("\n");
+}
+
+// An empty value becomes a bracketed placeholder, or stays empty without one.
+const blank = (value: string, placeholder?: string) =>
+  escapeMarkdown(value) || (placeholder ? `[${placeholder}]` : "");
+
+// Single-line fields: collapse any line breaks before escaping.
+const inline = (value: string, placeholder?: string) =>
+  blank(value.replace(/\s*\r?\n\s*/g, " "), placeholder);
+
+// A term length must be a whole number of years, at least 1.
+export const isValidYears = (value: string) => /^[1-9]\d{0,2}$/.test(value.trim());
+const years = (value: string) => (isValidYears(value) ? value.trim() : "[N]");
 
 const check = (on: boolean) => (on ? "[x]" : "[ ]");
 
-// Table cells must stay on one line and must not contain bare pipes.
-const cell = (value: string) =>
-  value.replace(/\|/g, "\\|").replace(/\s*\n\s*/g, " ");
+// YYYY-MM-DD in the user's local time zone (toISOString would use UTC).
+export function localDateString(date: Date = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+// Table cells must stay on one line.
+const cell = (value: string) => inline(value);
 
 export function buildCoverPage(f: NdaFields): string {
   const expires = f.mndaTermType === "expires";
-  const years = f.confidentialityType === "years";
+  const limited = f.confidentialityType === "years";
   const row = (label: string, a: string, b: string) =>
     `| ${label} | ${cell(a)} | ${cell(b)} |`;
 
@@ -72,25 +101,25 @@ This Mutual Non-Disclosure Agreement (the “MNDA”) consists of: (1) this Cove
 ${blank(f.purpose, "Purpose")}
 
 ### Effective Date
-${blank(f.effectiveDate, "Effective Date")}
+${inline(f.effectiveDate, "Effective Date")}
 
 ### MNDA Term
 *The length of this MNDA*
-- ${check(expires)} Expires ${blank(f.mndaTermYears, "N")} year(s) from Effective Date.
+- ${check(expires)} Expires ${years(f.mndaTermYears)} year(s) from Effective Date.
 - ${check(!expires)} Continues until terminated in accordance with the terms of the MNDA.
 
 ### Term of Confidentiality
 *How long Confidential Information is protected*
-- ${check(years)} ${blank(f.confidentialityYears, "N")} year(s) from Effective Date, but in the case of trade secrets until Confidential Information is no longer considered a trade secret under applicable laws.
-- ${check(!years)} In perpetuity.
+- ${check(limited)} ${years(f.confidentialityYears)} year(s) from Effective Date, but in the case of trade secrets until Confidential Information is no longer considered a trade secret under applicable laws.
+- ${check(!limited)} In perpetuity.
 
 ### Governing Law & Jurisdiction
-Governing Law: ${blank(f.governingLaw, "Fill in state")}
+Governing Law: ${inline(f.governingLaw, "Fill in state")}
 
-Jurisdiction: ${blank(f.jurisdiction, "Fill in city or county and state")}
+Jurisdiction: ${inline(f.jurisdiction, "Fill in city or county and state")}
 
 ### MNDA Modifications
-${f.modifications.trim() || "None."}
+${escapeMarkdown(f.modifications) || "None."}
 
 By signing this Cover Page, each party agrees to enter into this MNDA as of the Effective Date.
 
@@ -107,24 +136,8 @@ Common Paper Mutual Non-Disclosure Agreement (Version 1.0) free to use under [CC
 `;
 }
 
-// Section 9 of the standard terms uses "Governing Law" and "Jurisdiction" as
-// placeholders for the values chosen on the cover page.
-export function fillStandardTerms(terms: string, f: NdaFields): string {
-  const law = blank(f.governingLaw, "Governing Law");
-  const jurisdiction = blank(f.jurisdiction, "Jurisdiction");
-  return terms
-    .replace(
-      "the laws of the State of Governing Law, without regard to the conflict of laws provisions of such Governing Law",
-      () =>
-        `the laws of the State of ${law}, without regard to the conflict of laws provisions of such State`,
-    )
-    .replace(
-      "courts located in Jurisdiction. Each party irrevocably submits to the exclusive jurisdiction of such Jurisdiction",
-      () =>
-        `courts located in ${jurisdiction}. Each party irrevocably submits to the exclusive jurisdiction of such courts`,
-    );
-}
-
+// The Standard Terms are used verbatim: "Governing Law" and "Jurisdiction" are
+// defined terms whose values are set on the cover page.
 export function buildDocument(terms: string, f: NdaFields): string {
-  return `${buildCoverPage(f)}\n---\n\n${fillStandardTerms(terms, f)}`;
+  return `${buildCoverPage(f)}\n---\n\n${terms}`;
 }

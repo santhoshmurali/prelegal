@@ -6,6 +6,8 @@ import remarkGfm from "remark-gfm";
 import {
   buildDocument,
   defaultFields,
+  isValidYears,
+  localDateString,
   type NdaFields,
   type PartyFields,
 } from "@/lib/nda";
@@ -135,7 +137,7 @@ export default function NdaCreator({ terms }: { terms: string }) {
               type="button"
               className="shrink-0 rounded border border-zinc-300 px-3 text-sm hover:bg-zinc-100"
               onClick={() =>
-                update("effectiveDate", new Date().toISOString().slice(0, 10))
+                update("effectiveDate", localDateString())
               }
             >
               Use today
@@ -158,7 +160,9 @@ export default function NdaCreator({ terms }: { terms: string }) {
             <input
               type="number"
               min={1}
+              step={1}
               className={`${input} !w-20`}
+              aria-invalid={!isValidYears(fields.mndaTermYears)}
               value={fields.mndaTermYears}
               onChange={text("mndaTermYears")}
               aria-label="MNDA term years"
@@ -190,7 +194,9 @@ export default function NdaCreator({ terms }: { terms: string }) {
             <input
               type="number"
               min={1}
+              step={1}
               className={`${input} !w-20`}
+              aria-invalid={!isValidYears(fields.confidentialityYears)}
               value={fields.confidentialityYears}
               onChange={text("confidentialityYears")}
               aria-label="Confidentiality years"
