@@ -1,0 +1,6 @@
+[project]
+name = "prelegal"
+version = "0.1.0"
+description = "Prelegal: a platform for drafting common legal agreements"
+requires-python = ">=3.12"
+dependencies = []
