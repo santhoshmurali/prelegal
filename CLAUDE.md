@@ -25,7 +25,7 @@ When writing code to make calls to LLMs, use your "coreweave-inference" skill to
 
 There is an OPENROUTER_API_KEY in the .env file in the project root.
 
-Status: built for the Mutual NDA (PL-6). `backend/src/prelegal_backend/chat.py` calls `openai/gpt-oss-120b` via LiteLLM and OpenRouter, with CoreWeave as the only provider, and uses Structured Outputs. Field extraction is not reliable on every turn (see `Docs/lessons-learnt.md`).
+Status: built for the Mutual NDA (PL-6). `backend/src/prelegal_backend/chat.py` calls `openai/gpt-oss-120b` via LiteLLM and OpenRouter, with CoreWeave as the only provider, and uses Structured Outputs. Reasoning effort is set in the OpenRouter request body, because LiteLLM rejects `reasoning_effort` for this model in the container. Field extraction is not reliable on every turn (see `Docs/lessons-learnt.md`).
 
 ## Technical design
 
@@ -69,7 +69,7 @@ Built:
 - **Templates (PL-2):** 12 agreements in `templates/`, indexed by `catalog.json`.
 - **Mutual NDA creator (PL-4):** `/platform/`. `frontend/components/NdaCreator.tsx` is the form and preview, `frontend/lib/nda.ts` builds the document, `frontend/lib/templates.ts` loads terms from `templates/` at build time.
 - **Foundation V1 (PL-5):** fake login at `/` (`LoginForm.tsx`, no credential check, opens `/platform/`). `backend/src/prelegal_backend/main.py` serves `/api/health` and the static frontend. `db.py` creates the `users` table from scratch at `DATABASE_PATH` (default `data/prelegal.db`; Docker volume `prelegal-data` at `/app/data`).
-- **Mr. Legal chat (PL-6):** floating chat on `/platform/`, Mutual NDA only. It fills the form from the conversation. Backend `POST /api/chat/mutual-nda`.
+- **Mr. Legal chat (PL-6):** floating chat on `/platform/`, Mutual NDA only. It asks one question per reply and fills the form after each answer. Chat history lives in the page session only. Backend `POST /api/chat/mutual-nda` (no auth yet). Verified in Docker: 7 of 7 end-to-end checks, 13 of 13 backend tests (incl. 2 live LLM tests), 38 of 38 frontend tests.
 - **Docker and scripts:** two-stage Dockerfile on port 8000. The start scripts pass `.env` into the container. Windows has start, stop and wipe scripts. Mac and Linux have start and stop only.
 - **Tests:** backend `cd backend && uv run pytest` (11 unit tests, LLM mocked). Live LLM checks: `RUN_LIVE_TESTS=1 uv run pytest tests/test_chat_live.py` (needs `OPENROUTER_API_KEY`). Frontend `cd frontend && npm test` (Vitest, `__tests__/`).
 
@@ -79,7 +79,8 @@ Not yet built:
 - `SEED_USERNAME` / `SEED_PASSWORD` admin seeding.
 - Document persistence.
 - Mac and Linux wipe scripts.
-- Verified end-to-end Docker run. The Python build stage was blocked by TLS interception on the dev machine (see `Docs/help.md`).
+- Mr. Legal reliability: the model sometimes skips a detail the user already gave (e.g. purpose), and it can return invalid JSON at temperature 0. No retry is implemented.
+- Auth on `/api/chat/mutual-nda`.
 
 Docs: `Docs/Readme.md` and `Docs/help.md` describe the running milestone.
 
