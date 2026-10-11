@@ -12,6 +12,7 @@ from prelegal_backend.admin import router as admin_router
 from prelegal_backend.auth import router as auth_router, seed_admin_if_empty
 from prelegal_backend.chat import router as chat_router
 from prelegal_backend.db import database_path, init_database
+from prelegal_backend.saved_documents import router as saved_documents_router
 
 DEFAULT_STATIC_DIR = Path(os.environ.get("STATIC_DIR", "../frontend/out"))
 
@@ -34,6 +35,7 @@ def create_app(static_dir: Path = DEFAULT_STATIC_DIR) -> FastAPI:
 
     app.include_router(auth_router)
     app.include_router(admin_router)
+    app.include_router(saved_documents_router)
     app.include_router(chat_router)
 
     if static_dir.is_dir():
