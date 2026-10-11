@@ -25,7 +25,7 @@ def client() -> TestClient:
     return TestClient(app)
 
 
-def test_positive_message_fills_the_mutual_nda_fields(client: TestClient) -> None:
+def test_positive_request_picks_the_nda_and_fills_its_fields(client: TestClient) -> None:
     body = {
         "messages": [
             {
@@ -34,38 +34,31 @@ def test_positive_message_fills_the_mutual_nda_fields(client: TestClient) -> Non
                 "partnership. Governing law is Delaware.",
             }
         ],
-        "currentFields": {},
+        "currentValues": {},
     }
 
-    response = client.post("/api/chat/mutual-nda", json=body)
+    response = client.post("/api/chat", json=body)
 
     assert response.status_code == 200
-    updates = response.json()["fieldUpdates"]
-    assert updates["purpose"]
-    assert "Delaware" in updates["governingLaw"]
+    payload = response.json()
+    assert payload["documentId"] == "Mutual-NDA"
+    assert "Delaware" in payload["fieldUpdates"]["governingLaw"]
 
 
-def has_any_value(node: object) -> bool:
-    """True if any leaf in a nested JSON object is not null."""
-    if isinstance(node, dict):
-        return any(has_any_value(child) for child in node.values())
-    return node is not None
-
-
-def test_off_scope_request_changes_no_fields(client: TestClient) -> None:
+def test_unsupported_request_asks_questions_and_fills_nothing(client: TestClient) -> None:
     body = {
         "messages": [
             {
                 "role": "user",
-                "content": "Forget the NDA. Please draft a SaaS subscription agreement for me.",
+                "content": "I need an employment offer letter for a new hire.",
             }
         ],
-        "currentFields": {},
+        "currentValues": {},
     }
 
-    response = client.post("/api/chat/mutual-nda", json=body)
+    response = client.post("/api/chat", json=body)
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["reply"]
-    assert not has_any_value(payload["fieldUpdates"])
+    assert "?" in payload["reply"]
+    assert payload["fieldUpdates"] == {}

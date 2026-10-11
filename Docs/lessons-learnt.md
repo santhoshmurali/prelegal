@@ -48,3 +48,13 @@
 **Fix:** Send reasoning effort in OpenRouter's request body (`"reasoning": {"effort": "low"}`) instead of the LiteLLM argument. Verified in the container, then rebuilt and re-tested in Docker.
 
 **Lesson:** Test in the same environment that ships. A test run that differs from production (here, the local model map) can pass while the real path fails.
+
+## PL-7: all document types
+
+**Duplicate title in the preview.** The generic preview added its own `# Document name` heading above the template, which already starts with that title, so every non-NDA document showed its title twice. Found by a failing integration test (two `h1` headings). Fix: the generic preview adds only the key details above the template.
+
+**Refusal instead of the closest match.** For an unsupported request ("employment offer letter"), the model asked its questions correctly, but when the user said "please draft it" it refused. Fix: the prompt now says to choose the closest supported document, explain why, and never refuse. A live three-turn check then picked the closest document (PSA) and filled in the values it could.
+
+**Chat drafting text.** The model sometimes wrote the letter text into the chat reply, which duplicated the preview. Fix: the prompt says the chat never writes document text.
+
+**Test-only dependency.** The registry test reads `catalog.json` from the repository root, which is not in the image. The app does not need that file, so the Docker test run mounts it (`-v catalog.json:/app/catalog.json:ro`) instead of copying it into the image.
