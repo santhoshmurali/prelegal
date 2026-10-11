@@ -32,7 +32,7 @@ Mr. Legal contract (`POST /api/chat`):
 - Response: `{reply, documentId, fieldUpdates}`. `documentId` is the chosen supported document, or null. `fieldUpdates` holds only the fields that changed this turn, already validated.
 - The model's prompt lists every supported document and its fields. The server drops unknown keys and checks each value against its field: fixed options, whole years, ISO dates, or clean text.
 - Unsupported requests: ask questions, then choose the closest supported document and say why. The model never refuses, and never writes document text in chat.
-- Upstream rate limits: LiteLLM retries 3 times. If CoreWeave still returns 429, the endpoint answers 503 with "Mr. Legal is busy right now", and the page asks the user to try again.
+- Upstream rate limits: LiteLLM retries 3 times. If CoreWeave still returns 429, the endpoint answers 503 with "Mr. Legal is busy right now. Please try again in a moment.", and the chat panel shows its "Mr. Legal is unavailable right now. Please try again." message.
 - Env: `OPENROUTER_API_KEY` (required), `DOCUMENTS_PATH` (default `../templates/documents.json`), `DATABASE_PATH`, `STATIC_DIR`, `RUN_LIVE_TESTS=1` for the live LLM tests.
 
 ## Technical design
@@ -73,6 +73,10 @@ Backend available at http://localhost:8000
 
 Stack: Next.js 16.4 + React 19.3 (`frontend/`, static export), FastAPI on uv (`backend/`), SQLite, Docker.
 
+Jira and git status: PL-5 (Foundation V1), PL-6 (Mr. Legal for the NDA) and PL-7 (all documents) are Done. PR #8 and PR #9 are merged into `main` locally and pushed. PR #8 and #9 are still open on GitHub, since the merges were local.
+
+Testing: run Docker tests from a freshly built image, then stop and wipe the container, image and volume (`scripts/stop-windows-wipe-volumne.ps1`).
+
 Built:
 - **Templates (PL-2):** 12 entries in `catalog.json` cover 11 documents. The Mutual NDA is two files (cover page and standard terms).
 - **Mutual NDA (PL-4):** `frontend/lib/nda.ts` builds the NDA cover page and document, unchanged in PL-7.
@@ -89,7 +93,7 @@ Not yet built:
 - `SEED_USERNAME` / `SEED_PASSWORD` admin seeding.
 - Document persistence.
 - Mac and Linux wipe scripts.
-- Mr. Legal reliability: the model sometimes skips a detail the user already gave (e.g. purpose), and it can return invalid JSON at temperature 0. No retry is implemented.
+- Mr. Legal reliability: the model sometimes skips a detail the user already gave (e.g. purpose), and it can return invalid JSON at temperature 0. Invalid JSON is not retried, so that turn fails with HTTP 500. Only rate limits are retried.
 - Auth on `/api/chat`.
 
 Docs: `Docs/Readme.md` and `Docs/help.md` describe the running milestone.
