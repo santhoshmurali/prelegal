@@ -22,8 +22,8 @@ Any username and password opens the platform. Sign-in is a placeholder in V1.
 
 1. Open the platform and click **Chat with Mr. Legal** in the bottom-right corner.
 2. Describe the deal in your own words, for example "We want an NDA with Acme Ltd for evaluating a partnership, under Delaware law."
-3. Mr. Legal replies with a numbered list of the details it still needs. Answer them in one message.
-4. The form and preview update as Mr. Legal fills in fields. Edit any field by hand at any time.
+3. Mr. Legal asks one question at a time, in conversation, about the next missing detail. Answer it, and the next question follows.
+4. The form and preview update after each answer. Edit any field by hand at any time.
 5. Refreshing the page clears the conversation. The form values are kept only while the page stays open.
 
 Mr. Legal is not a lawyer and does not give legal advice. It only helps with the Mutual NDA.
