@@ -11,7 +11,8 @@ from pydantic.alias_generators import to_camel
 
 MODEL = "openrouter/openai/gpt-oss-120b"
 # CoreWeave only. Pinning the fp4 quantization garbled extracted values (see Docs/lessons-learnt.md).
-EXTRA_BODY = {"provider": {"only": ["coreweave"]}}
+# Reasoning effort goes through OpenRouter's body field: LiteLLM rejects its reasoning_effort argument for this model.
+EXTRA_BODY = {"provider": {"only": ["coreweave"]}, "reasoning": {"effort": "low"}}
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -115,7 +116,6 @@ async def mutual_nda_turn(request: MutualNdaChatRequest) -> MrLegalTurn:
             *(message.model_dump() for message in request.messages),
         ],
         response_format=MrLegalTurn,
-        reasoning_effort="low",
         extra_body=EXTRA_BODY,
     )
     return MrLegalTurn.model_validate_json(response.choices[0].message.content)

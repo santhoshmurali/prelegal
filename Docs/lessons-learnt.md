@@ -38,3 +38,13 @@
 
 **Lesson**
 - Measure before changing settings. Each change above was tested against the live model with a fixed prompt and a counted failure rate. Several plausible fixes (temperature, reasoning effort, JSON mode) made no difference.
+
+## Mr. Legal (PL-6): tests passed on the host but failed in Docker
+
+**Symptom:** `POST /api/chat/mutual-nda` returned HTTP 500 inside the container. The log showed `openrouter does not support parameters: ['reasoning_effort']`.
+
+**Root cause:** The host tests set `LITELLM_LOCAL_MODEL_COST_MAP=True`, so LiteLLM used an older bundled model map that allowed `reasoning_effort`. The container fetched the live map, which marks that parameter unsupported for `openai/gpt-oss-120b` on OpenRouter. Proof: `get_supported_openai_params` returned `False` in the container and `True` on the host.
+
+**Fix:** Send reasoning effort in OpenRouter's request body (`"reasoning": {"effort": "low"}`) instead of the LiteLLM argument. Verified in the container, then rebuilt and re-tested in Docker.
+
+**Lesson:** Test in the same environment that ships. A test run that differs from production (here, the local model map) can pass while the real path fails.
