@@ -8,7 +8,7 @@ The available documents are covered in the catalog.json file in the project root
 
 @catalog.json
 
-Current state: only the Mutual NDA creator is built (a form, not AI chat). Fake login only, no document persistence. The other 11 document types are not yet wired up. See "Implementation status" at the end of this file.
+Current state: the Mutual NDA is built as a form with a floating Mr. Legal AI chat that fills it in. Fake login only, no document persistence. The other 11 document types are not yet wired up. See "Implementation status" at the end of this file.
 
 ## Development process
 
