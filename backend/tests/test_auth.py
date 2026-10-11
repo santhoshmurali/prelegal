@@ -102,3 +102,17 @@ def test_deactivated_account_loses_access_immediately(database_file: Path, clien
 
     assert client.get("/api/auth/me").status_code == 401
     assert sign_in(client, SEED_USERNAME, SEED_PASSWORD).status_code == 403
+
+
+def test_session_cookie_lasts_one_hour(client: TestClient) -> None:
+    response = sign_in(client, SEED_USERNAME, SEED_PASSWORD)
+
+    assert "Max-Age=3600" in response.headers["set-cookie"]
+
+
+def test_session_expires_after_one_hour(database_file: Path, client: TestClient) -> None:
+    sign_in(client, SEED_USERNAME, SEED_PASSWORD)
+    with sqlite3.connect(database_file) as connection:
+        connection.execute("UPDATE sessions SET expires_at = '2000-01-01T00:00:00+00:00'")
+
+    assert client.get("/api/auth/me").status_code == 401

@@ -1,6 +1,7 @@
 """Accounts and sessions: scrypt password hashes and opaque session tokens in an HttpOnly cookie."""
 
 from contextlib import closing
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 import hashlib
 import hmac
@@ -15,6 +16,7 @@ from pydantic.alias_generators import to_camel
 from prelegal_backend.db import connect
 
 SESSION_COOKIE = "prelegal_session"
+SESSION_LIFETIME = timedelta(hours=1)
 SALT_BYTES = 16
 KEY_BYTES = 64
 SCRYPT_PARAMS = {"n": 2**14, "r": 8, "p": 1}
@@ -89,12 +91,13 @@ def seed_admin_if_empty() -> None:
 
 
 def create_session(user_id: int) -> str:
-    """Start a session for a user and return the token to send in the cookie."""
+    """Start a session that lasts SESSION_LIFETIME and return the token to send in the cookie."""
     token = secrets.token_urlsafe(32)
+    expires_at = datetime.now(UTC) + SESSION_LIFETIME
     with closing(connect()) as connection, connection:
         connection.execute(
-            "INSERT INTO sessions (token_hash, user_id) VALUES (?, ?)",
-            (_token_hash(token), user_id),
+            "INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)",
+            (_token_hash(token), user_id, expires_at.isoformat()),
         )
     return token
 
@@ -106,12 +109,12 @@ def delete_session(token: str) -> None:
 
 
 def session_user(token: str) -> SessionUser | None:
-    """Return the signed-in user for a token; deactivated accounts lose access at once."""
+    """Return the signed-in user for a live token; expired sessions and deactivated accounts get None."""
     with closing(connect()) as connection:
         row = connection.execute(
             "SELECT u.id, u.username, u.is_admin, u.is_active FROM sessions s "
-            "JOIN users u ON u.id = s.user_id WHERE s.token_hash = ?",
-            (_token_hash(token),),
+            "JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?",
+            (_token_hash(token), datetime.now(UTC).isoformat()),
         ).fetchone()
     if row is None or not row["is_active"]:
         return None
@@ -137,7 +140,13 @@ def login(credentials: LoginRequest, response: Response) -> SessionUser:
         raise HTTPException(status_code=401, detail="Invalid username or password.")
     if not user["is_active"]:
         raise HTTPException(status_code=403, detail="This account has been deactivated.")
-    response.set_cookie(SESSION_COOKIE, create_session(user["id"]), httponly=True, samesite="lax")
+    response.set_cookie(
+        SESSION_COOKIE,
+        create_session(user["id"]),
+        max_age=int(SESSION_LIFETIME.total_seconds()),
+        httponly=True,
+        samesite="lax",
+    )
     return SessionUser(id=user["id"], username=user["username"], is_admin=bool(user["is_admin"]))
 
 

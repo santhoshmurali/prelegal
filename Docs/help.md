@@ -18,7 +18,7 @@ The wipe script also removes the volume, so the database is created fresh next t
 
 1. Open http://localhost:8000 and sign in with the admin account from `.env`.
 2. The admin is created once, on a fresh database, from `SEED_USERNAME` and `SEED_PASSWORD`. Write them without quotes in `.env`, for example `SEED_USERNAME=admin`.
-3. Use "Sign out" in the top bar to end the session.
+3. Use "Sign out" in the top bar to end the session. A session lasts one hour, then you sign in again.
 
 The platform and the chat need a signed-in session. Sign-up and the admin user page come in later steps.
 

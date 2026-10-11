@@ -75,7 +75,7 @@ PL-8 (Multiple Users & Final Push) is split into four PRs. Step 1 (seed admin, s
 
 Stack: Next.js 16.4 + React 19.3 (`frontend/`, static export), FastAPI on uv (`backend/`), SQLite, Docker.
 
-Jira and git status: PL-5 (Foundation V1), PL-6 (Mr. Legal for the NDA) and PL-7 (all documents) are Done. PR #8 and PR #9 are merged into `main` locally and pushed. PR #8 and #9 are still open on GitHub, since the merges were local.
+Jira and git status: PL-5 (Foundation V1), PL-6 (Mr. Legal for the NDA) and PL-7 (all documents) are Done. PR #8 and PR #9 are merged and closed on GitHub (merged 2026-10-11).
 
 Testing: run Docker tests from a freshly built image, then stop and wipe the container, image and volume (`scripts/stop-windows-wipe-volumne.ps1`).
 
