@@ -30,9 +30,11 @@ Click "Create an account" on the sign-in page. Enter a username and a password o
 
 The admin sees a "Users" link in the top bar. It lists every account. Use "Deactivate" to stop a user from signing in; their open session ends at once. Use "Activate" to allow them back. The admin cannot deactivate their own account.
 
-**After upgrading from an earlier build:** the database volume from before PL-8 has no admin, and its `users` table lacks the new columns. Run `scripts\stop-windows-wipe-volumne.ps1` and then the start script, so the database is created fresh.
+**After upgrading from an earlier build:** the database volume from before PL-8 has no admin, and its `users` table lacks the new columns. The container now runs as a non-root user, which cannot write to a volume created by an earlier build either. Run `scripts\stop-windows-wipe-volumne.ps1` and then the start script, so the database is created fresh.
 
 ## Draft a document with Mr. Legal
+
+Every document is a draft. The sign-in page and the top of the preview say so. Have a qualified lawyer review a document before anyone signs it.
 
 1. Open the platform. Mr. Legal introduces itself and lists the agreements it supports.
 2. Describe what you need, for example "We want an NDA with Acme Ltd for evaluating a partnership, under Delaware law."

@@ -8,7 +8,7 @@ The available documents are covered in the catalog.json file in the project root
 
 @catalog.json
 
-Current state: all 11 supported documents are built. The platform is a Mr. Legal AI chat beside a live preview, and the chat fills in the document's fields. Requests for unsupported documents get limited help: Mr. Legal drafts the closest supported document. Users sign up or sign in with a one-hour session cookie. An admin seeded from `.env` manages user activation. Each user's drafts are saved and can be reopened from "My documents" (PL-8 step 3). Only the polish and disclaimer remain (PL-8 step 4). See "Implementation status" at the end of this file.
+Current state: all 11 supported documents are built. The platform is a Mr. Legal AI chat beside a live preview, and the chat fills in the document's fields. Requests for unsupported documents get limited help: Mr. Legal drafts the closest supported document. Users sign up or sign in with a one-hour session cookie. An admin seeded from `.env` manages user activation. Each user's drafts are saved and can be reopened from "My documents" (PL-8 step 3). The visual polish and the draft disclaimer are in place (PL-8 step 4). See "Implementation status" at the end of this file.
 
 ## Development process
 
@@ -75,8 +75,10 @@ Stack: Next.js 16.4 + React 19.3 (`frontend/`, static export), FastAPI on uv (`b
 
 Jira and git status:
 - PL-5 (Foundation V1), PL-6 (Mr. Legal for the NDA) and PL-7 (all documents) are Done. PR #8 and PR #9 are merged and closed on GitHub (merged 2026-10-11).
-- PL-8 (Support Multiple Users & Final Push) is In Progress, split into four PRs. Step 1 (PR #10, sign-in and sessions) and step 2 (PR #11, sign-up and admin) are merged into `main` and pushed. PR #10 closed as merged on GitHub. PR #11 was merged locally (`20f9b84`) and commented, then closed on GitHub without the merged flag, because its base was the step-1 branch.
-- Step 3 (saved documents) is built on branch `PL-8-step-3-saved-documents`, PR pending. Step 4 (polish and disclaimer) is not yet built.
+- PL-8 (Support Multiple Users & Final Push) is Done, split into four PRs. Step 1 (PR #10, sign-in and sessions) and step 2 (PR #11, sign-up and admin) are merged into `main` and pushed. PR #10 closed as merged on GitHub. PR #11 was merged locally (`20f9b84`) and commented, then closed on GitHub without the merged flag, because its base was the step-1 branch.
+- Step 3 (saved documents, PR #12) and step 4 (visual polish and disclaimer, PR #13) are merged into `main` locally and pushed. PR #13 was commented and closed on GitHub without the merged flag, as PR #11 was. This also merged the PL-8 security review (see Built).
+- Colours: `frontend/app/globals.css` defines the CLAUDE.md palette as Tailwind tokens (`text-navy`, `bg-secondary` for submit buttons, `text-primary`, `text-muted`, `accent`). The app is light-only.
+- Draft disclaimer: `frontend/components/Disclaimer.tsx`, shown on the sign-in page and under the preview header, kept in printed output.
 
 Testing: run Docker tests from a freshly built image, then stop and wipe the container, image and volume (`scripts/stop-windows-wipe-volumne.ps1`).
 
@@ -89,25 +91,35 @@ Built:
   - Passwords are salted scrypt hashes (stdlib `hashlib.scrypt`).
   - Sessions are opaque random tokens. Only their SHA-256 is stored, in the `sessions` table, with `expires_at` one hour after sign in. The cookie is `prelegal_session`, HttpOnly, SameSite=Lax, Max-Age 3600.
   - Logout deletes the session. Deactivated accounts lose their sessions at once, because the session check also requires `is_active`.
-  - Endpoints: `POST /api/auth/login`, `POST /api/auth/signup` (201; 409 if the username is taken; 422 if the password is under 8 characters), `POST /api/auth/logout` (204), `GET /api/auth/me`.
+  - Endpoints: `POST /api/auth/login`, `POST /api/auth/signup` (201; 409 if the username is taken; 422 if the password is under 8 or over 128 characters), `POST /api/auth/logout` (204), `GET /api/auth/me`.
   - The admin is seeded once from `SEED_USERNAME` / `SEED_PASSWORD` when the `users` table is empty, with `is_admin = 1`.
 - **Admin (PL-8 step 2):** `backend/src/prelegal_backend/admin.py`. `GET /api/admin/users` and `PATCH /api/admin/users/{id}` (body `{isActive}`) are admin-only (403 otherwise). The admin cannot deactivate their own account (400). `/admin/` (`AdminPanel.tsx`) lists accounts with Activate and Deactivate buttons and sends non-admins to `/platform/`.
 - **Foundation V1 (PL-5):** `backend/src/prelegal_backend/main.py` serves `/api/health`, the auth and admin routers, and the static frontend. `db.py` creates the `users` and `sessions` tables from scratch at `DATABASE_PATH` (default `data/prelegal.db`; Docker volume `prelegal-data` at `/app/data`). Tables are not altered, so a volume created before PL-8 must be wiped.
-- **Mr. Legal chat (PL-6, PL-7):** introduces itself, lists the supported documents, asks one question per reply and fills the preview after each answer. Vague answers get a clarifying question. Replies render as Markdown. Chat history lives in the page session only. Backend `POST /api/chat` requires a signed-in session (PL-8 step 1). Earlier PL-7 Docker verification: 10 of 10 end-to-end checks and 5 of 5 three-turn NDA conversations over HTTP. One live run hit an upstream CoreWeave rate limit and returned 503; a rerun passed.
-- **Docker and scripts:** two-stage Dockerfile on port 8000. The start scripts pass `.env` into the container. Windows has start, stop and wipe scripts. Mac and Linux have start and stop only. `.env` seed values must have no quotes, because Docker `--env-file` keeps them (see `Docs/lessons-learnt.md`).
-- **Saved documents (PL-8 step 3):** `backend/src/prelegal_backend/saved_documents.py`, a `documents` table (owner, document id, title, values as JSON, timestamps). `GET /api/documents` lists the user's drafts, newest first. `POST /api/documents` creates one (201). `GET /api/documents/{id}` and `PUT /api/documents/{id}` read and overwrite one. Values go through the chat's validation (`document_updates`), so unknown keys and invalid values are dropped. Drafts belong to their owner only: another user gets 404, and the admin cannot open them. Chat history is not saved.
-- **Tests:** backend 51 unit tests on host, 53 in Docker including the 2 live LLM tests (`RUN_LIVE_TESTS=1`). Frontend 53 tests (`cd frontend && npm test`, Vitest, `__tests__/`).
+- **Mr. Legal chat (PL-6, PL-7):** introduces itself, lists the supported documents, asks one question per reply and fills the preview after each answer. Vague answers get a clarifying question. Replies render as Markdown. Chat history lives in the page session only. Backend `POST /api/chat` requires a signed-in session (PL-8 step 1). Requests are capped at 100 messages of 4000 characters, and `documentId` must be a supported id (422 otherwise). Earlier PL-7 Docker verification: 10 of 10 end-to-end checks and 5 of 5 three-turn NDA conversations over HTTP. One live run hit an upstream CoreWeave rate limit and returned 503; a rerun passed.
+- **Docker and scripts:** two-stage Dockerfile on port 8000. The app runs as the non-root `app` user, which owns only `/app/data`. The start scripts pass `.env` into the container. Windows has start, stop and wipe scripts. Mac and Linux have start and stop only. `.env` seed values must have no quotes, because Docker `--env-file` keeps them (see `Docs/lessons-learnt.md`).
+- **Saved documents (PL-8 step 3):** `backend/src/prelegal_backend/saved_documents.py`, a `documents` table (owner, document id, title, values as JSON, timestamps). `GET /api/documents` lists the user's drafts, newest first. `POST /api/documents` creates one (201). `GET /api/documents/{id}` and `PUT /api/documents/{id}` read and overwrite one. Values go through the chat's validation (`document_updates`), so unknown keys and invalid values are dropped. Drafts belong to their owner only: another user gets 404, and the admin cannot open them. Chat history is not saved. Field values are capped at 2000 characters.
+- **Security review (PL-8 final, OWASP Top 10):** reviewed the whole codebase and fixed these:
+  - `POST /api/chat` returned HTTP 500 (`KeyError`) when the request named an unknown `documentId` and the model chose none. The id is now validated (422).
+  - Chat messages, message length, field value length and password length are now capped.
+  - `session_user` and `to_session_user` no longer build the user twice.
+  - The container runs as a non-root user.
+  - Checked and clean: no raw HTML rendering (`react-markdown` without `rehype-raw`), no `dangerouslySetInnerHTML`, no secrets in git (`.env` is git- and Docker-ignored), `npm audit` reports 0 vulnerabilities, and all admin, draft and chat routes return 401 without a session.
+- **Tests:** backend 55 unit tests on host, plus 2 live LLM tests that are skipped without `RUN_LIVE_TESTS=1`. Frontend 53 tests (`cd frontend && npm test`, Vitest, `__tests__/`).
 
-Verified in Docker for PL-8:
+Verified for PL-8:
 - Step 1 (PR #10): sign-in, admin seed, cookie lifetime, auth on chat, logout, and sign-in after a container restart.
 - Step 2 (PR #11): 15 of 15 checks over HTTP covering sign-up, admin routes, self-deactivation, deactivation ending a live session, reactivation, and the pages. The container log had no errors.
+- Final (agent-browser, rebuilt non-root image, evidence in `Docs/e2e/`): admin sign-in and admin page; sign-up; a live chat turn that filled the NDA preview over two turns; the draft saved and reopened with its values; a missing `?doc=999` shows an empty platform; admin deactivation refused sign-in with "This account has been deactivated."; signed-out API calls return 401; and the input caps return 422 against the live container.
 
 Not yet built:
-- PL-8 step 4: colour polish across screens and the draft disclaimer on the sign-in page and under the preview.
 - Legal review of the 10 non-NDA field lists in `templates/documents.json`. They were drafted from the template titles and need a lawyer's check.
 - Mac and Linux wipe scripts.
 - Mr. Legal reliability: the model sometimes skips a detail the user already gave (e.g. purpose), and it can return invalid JSON at temperature 0. Invalid JSON is not retried, so that turn fails with HTTP 500. Only rate limits are retried.
 - Session cleanup: expired rows stay in the `sessions` table. They are ignored, so cleanup is not urgent.
+- Login and sign-up have no rate limit (OWASP A07). Scrypt slows guessing, but a limiter is still needed before public use.
+- The session cookie has no `Secure` flag, because local runs use plain HTTP. Set it once the app is served over HTTPS.
+- Sign-up reveals taken usernames (409), and login answers faster for unknown usernames than for known ones. Both are small leaks.
+- Docker base images and the `uv` image are not pinned to versions. Pin them before a production build.
 
 Docs: `Docs/Readme.md` and `Docs/help.md` describe the running milestone.
 

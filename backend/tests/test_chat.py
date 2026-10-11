@@ -108,3 +108,35 @@ def test_rejects_unknown_message_role(client: TestClient, fake_llm: dict[str, An
 
     assert response.status_code == 422
     assert fake_llm == {}
+
+
+def test_rejects_unknown_document_id(client: TestClient, fake_llm: dict[str, Any]) -> None:
+    body = {**REQUEST_BODY, "documentId": "Not-A-Document"}
+
+    response = client.post("/api/chat", json=body)
+
+    assert response.status_code == 422
+    assert fake_llm == {}
+
+
+def test_unknown_document_id_is_rejected_even_when_model_chooses_none(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async def acompletion(**_: Any) -> SimpleNamespace:
+        return model_reply('{"reply": "Which one?", "documentId": null, "fieldUpdates": {}}')
+
+    monkeypatch.setattr(chat.litellm, "acompletion", acompletion)
+    body = {**REQUEST_BODY, "documentId": "Not-A-Document"}
+
+    response = client.post("/api/chat", json=body)
+
+    assert response.status_code == 422
+
+
+def test_rejects_oversized_message(client: TestClient, fake_llm: dict[str, Any]) -> None:
+    body = {"messages": [{"role": "user", "content": "x" * 10_000}]}
+
+    response = client.post("/api/chat", json=body)
+
+    assert response.status_code == 422
+    assert fake_llm == {}

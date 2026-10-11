@@ -18,6 +18,7 @@ from prelegal_backend.db import connect
 SESSION_COOKIE = "prelegal_session"
 SESSION_LIFETIME = timedelta(hours=1)
 MIN_PASSWORD_LENGTH = 8
+MAX_PASSWORD_LENGTH = 128
 SALT_BYTES = 16
 KEY_BYTES = 64
 SCRYPT_PARAMS = {"n": 2**14, "r": 8, "p": 1}
@@ -27,14 +28,14 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 class LoginRequest(BaseModel):
     username: str
-    password: str
+    password: str = Field(max_length=MAX_PASSWORD_LENGTH)
 
 
 class SignupRequest(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
     username: str = Field(min_length=1)
-    password: str = Field(min_length=MIN_PASSWORD_LENGTH)
+    password: str = Field(min_length=MIN_PASSWORD_LENGTH, max_length=MAX_PASSWORD_LENGTH)
 
 
 class SessionUser(BaseModel):
@@ -116,6 +117,11 @@ def delete_session(token: str) -> None:
         connection.execute("DELETE FROM sessions WHERE token_hash = ?", (_token_hash(token),))
 
 
+def to_session_user(row: sqlite3.Row) -> SessionUser:
+    """Build the signed-in user shown to the frontend from an account row."""
+    return SessionUser(id=row["id"], username=row["username"], is_admin=bool(row["is_admin"]))
+
+
 def session_user(token: str) -> SessionUser | None:
     """Return the signed-in user for a live token; expired sessions and deactivated accounts get None."""
     with closing(connect()) as connection:
@@ -126,7 +132,7 @@ def session_user(token: str) -> SessionUser | None:
         ).fetchone()
     if row is None or not row["is_active"]:
         return None
-    return SessionUser(id=row["id"], username=row["username"], is_admin=bool(row["is_admin"]))
+    return to_session_user(row)
 
 
 def current_user(session_token: SessionToken = None) -> SessionUser:
@@ -138,11 +144,6 @@ def current_user(session_token: SessionToken = None) -> SessionUser:
 
 
 CurrentUser = Annotated[SessionUser, Depends(current_user)]
-
-
-def to_session_user(row: sqlite3.Row) -> SessionUser:
-    """Build the signed-in user shown to the frontend from an account row."""
-    return SessionUser(id=row["id"], username=row["username"], is_admin=bool(row["is_admin"]))
 
 
 def start_session(response: Response, user: sqlite3.Row) -> SessionUser:

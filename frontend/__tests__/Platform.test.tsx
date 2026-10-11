@@ -77,6 +77,13 @@ describe("Platform", () => {
     await screen.findByText("Governing Law: Delaware");
   });
 
+  it("shows the draft disclaimer under the preview header", () => {
+    mockApi([]);
+    renderPlatform();
+
+    expect(screen.getByRole("note")).toHaveTextContent("Draft only.");
+  });
+
   it("switches the preview to another document when Mr. Legal chooses it", async () => {
     mockApi([{ reply: "I'll draft a Cloud Service Agreement.", documentId: "CSA", fieldUpdates: { subscriptionPeriod: "12 months" } }]);
     const user = userEvent.setup();

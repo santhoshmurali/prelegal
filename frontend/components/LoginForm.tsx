@@ -30,22 +30,22 @@ export default function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
-      <label className="flex flex-col gap-1 text-sm font-medium text-[#032147]">
+      <label className="flex flex-col gap-1 text-sm font-medium text-navy">
         Username
         <input
           name="username"
           type="text"
           autoComplete="username"
-          className="rounded border border-zinc-300 px-3 py-2 font-normal"
+          className="rounded border border-zinc-300 px-3 py-2 font-normal focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
       </label>
-      <label className="flex flex-col gap-1 text-sm font-medium text-[#032147]">
+      <label className="flex flex-col gap-1 text-sm font-medium text-navy">
         Password
         <input
           name="password"
           type="password"
           autoComplete="current-password"
-          className="rounded border border-zinc-300 px-3 py-2 font-normal"
+          className="rounded border border-zinc-300 px-3 py-2 font-normal focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
       </label>
       {error && (
@@ -55,12 +55,12 @@ export default function LoginForm() {
       )}
       <button
         type="submit"
-        className="rounded bg-[#753991] px-4 py-2 font-semibold text-white hover:opacity-90"
+        className="rounded bg-secondary px-4 py-2 font-semibold text-white hover:opacity-90"
       >
         Sign in
       </button>
-      <p className="text-center text-sm text-[#888888]">
-        New here? <Link href="/signup/" className="font-medium text-[#209dd7]">Create an account</Link>
+      <p className="text-center text-sm text-muted">
+        New here? <Link href="/signup/" className="font-medium text-primary">Create an account</Link>
       </p>
     </form>
   );

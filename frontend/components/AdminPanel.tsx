@@ -62,13 +62,13 @@ export default function AdminPanel() {
     <>
       <header className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-200 px-6 py-4">
         <div>
-          <h1 className="text-xl font-semibold text-[#032147]">Prelegal · Users</h1>
-          <p className="text-sm text-[#888888]">Activate or deactivate accounts. Deactivated users are signed out at once.</p>
+          <h1 className="text-xl font-semibold text-navy">Prelegal · Users</h1>
+          <p className="text-sm text-muted">Activate or deactivate accounts. Deactivated users are signed out at once.</p>
         </div>
         <div className="flex items-center gap-4 text-sm">
-          <Link href="/platform/" className="font-medium text-[#209dd7]">Platform</Link>
-          <span className="text-[#032147]">{me.username}</span>
-          <button type="button" onClick={signOut} className="rounded border border-zinc-300 px-3 py-1.5 font-medium text-[#032147] hover:bg-zinc-50">
+          <Link href="/platform/" className="font-medium text-primary">Platform</Link>
+          <span className="text-navy">{me.username}</span>
+          <button type="button" onClick={signOut} className="rounded border border-zinc-300 px-3 py-1.5 font-medium text-navy hover:bg-zinc-50">
             Sign out
           </button>
         </div>
@@ -81,7 +81,7 @@ export default function AdminPanel() {
         )}
         <table className="w-full border-collapse text-left text-sm">
           <thead>
-            <tr className="border-b border-zinc-200 text-[#032147]">
+            <tr className="border-b border-zinc-200 text-navy">
               <th className="py-2">Username</th>
               <th className="py-2">Role</th>
               <th className="py-2">Status</th>
@@ -91,17 +91,17 @@ export default function AdminPanel() {
           <tbody>
             {accounts.map((account) => (
               <tr key={account.id} className="border-b border-zinc-100">
-                <td className="py-2 font-medium text-[#032147]">{account.username}</td>
+                <td className="py-2 font-medium text-navy">{account.username}</td>
                 <td className="py-2">{account.isAdmin ? "Admin" : "User"}</td>
                 <td className="py-2">{account.isActive ? "Active" : "Deactivated"}</td>
                 <td className="py-2 text-right">
                   {account.id === me.id ? (
-                    <span className="text-[#888888]">You</span>
+                    <span className="text-muted">You</span>
                   ) : (
                     <button
                       type="button"
                       onClick={() => toggleActive(account)}
-                      className="rounded border border-zinc-300 px-3 py-1 font-medium text-[#032147] hover:bg-zinc-50"
+                      className="rounded border border-zinc-300 px-3 py-1 font-medium text-navy hover:bg-zinc-50"
                     >
                       {account.isActive ? "Deactivate" : "Activate"}
                     </button>

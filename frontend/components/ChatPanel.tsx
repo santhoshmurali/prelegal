@@ -21,7 +21,7 @@ export function buildIntro(documents: DocumentSpec[]): string {
 
 function Bubble({ role, content }: ChatMessage) {
   return role === "user" ? (
-    <p className="ml-6 rounded bg-blue-50 px-3 py-2 text-zinc-900">{content}</p>
+    <p className="ml-6 rounded bg-primary/10 px-3 py-2 text-zinc-900">{content}</p>
   ) : (
     <div className="mr-6 rounded bg-zinc-100 px-3 py-2 text-zinc-700 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1 [&_ul]:list-disc [&_ul]:pl-5">
       <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
@@ -79,7 +79,7 @@ export default function ChatPanel({
         {messages.map((message, index) => (
           <Bubble key={index} {...message} />
         ))}
-        {pending && <p className="text-xs text-[#888888]">Mr. Legal is typing...</p>}
+        {pending && <p className="text-xs text-muted">Mr. Legal is typing...</p>}
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
 
@@ -90,7 +90,7 @@ export default function ChatPanel({
         <div className="flex gap-2">
           <input
             id="mr-legal-message"
-            className="min-w-0 flex-1 rounded border border-zinc-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none"
+            className="min-w-0 flex-1 rounded border border-zinc-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder={documentId ? "Answer Mr. Legal" : "Describe the agreement you need"}
@@ -98,7 +98,7 @@ export default function ChatPanel({
           <button
             type="submit"
             disabled={pending}
-            className="rounded bg-[#753991] px-3 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+            className="rounded bg-secondary px-3 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
           >
             Send
           </button>

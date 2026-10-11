@@ -22,6 +22,11 @@ COPY backend/src ./src
 COPY templates /app/templates
 RUN uv sync --frozen --no-dev
 COPY --from=frontend-build /app/frontend/out /app/frontend/out
+# Run as an unprivileged user; only the data directory is writable.
+RUN useradd --system --no-create-home app \
+    && mkdir -p /app/data \
+    && chown app /app/data
+USER app
 VOLUME /app/data
 EXPOSE 8000
 CMD ["uvicorn", "prelegal_backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
