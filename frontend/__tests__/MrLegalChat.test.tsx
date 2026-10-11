@@ -44,6 +44,27 @@ describe("MrLegalChat", () => {
     expect(onChanges).toHaveBeenCalledWith({ governingLaw: "Delaware" });
   });
 
+  it("renders the reply's questions as a Markdown bullet list", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      jsonResponse({
+        reply: "I still need a few details:\n\n- The effective date?\n- The jurisdiction?",
+        fieldUpdates: {},
+      }),
+    );
+    const user = userEvent.setup();
+    render(<MrLegalChat fields={fields} onChanges={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: "Chat with Mr. Legal" }));
+    await user.type(screen.getByLabelText("Message Mr. Legal"), "Hello");
+    await user.click(screen.getByRole("button", { name: "Send" }));
+
+    const items = await screen.findAllByRole("listitem");
+    expect(items.map((item) => item.textContent)).toEqual([
+      "The effective date?",
+      "The jurisdiction?",
+    ]);
+  });
+
   it("shows an error when the chat request fails and changes nothing", async () => {
     const onChanges = vi.fn();
     vi.mocked(fetch).mockResolvedValue(jsonResponse({}, false));

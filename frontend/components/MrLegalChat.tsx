@@ -1,6 +1,8 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import type { NdaFields } from "@/lib/nda";
 import type { ChatMessage, ChatTurn, NdaChanges } from "@/lib/chat";
 
@@ -81,16 +83,18 @@ export default function MrLegalChat({
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3 text-sm">
         <p className="rounded bg-zinc-100 px-3 py-2 text-zinc-700">{GREETING}</p>
         {messages.map((message, index) => (
-          <p
-            key={index}
-            className={
-              message.role === "user"
-                ? "ml-6 rounded bg-blue-50 px-3 py-2 text-zinc-900"
-                : "mr-6 rounded bg-zinc-100 px-3 py-2 text-zinc-700"
-            }
-          >
-            {message.content}
-          </p>
+          message.role === "user" ? (
+            <p key={index} className="ml-6 rounded bg-blue-50 px-3 py-2 text-zinc-900">
+              {message.content}
+            </p>
+          ) : (
+            <div
+              key={index}
+              className="mr-6 rounded bg-zinc-100 px-3 py-2 text-zinc-700 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_p]:my-1"
+            >
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+            </div>
+          )
         ))}
         {pending && <p className="text-xs text-[#888888]">Mr. Legal is typing...</p>}
         {error && <p className="text-xs text-red-600">{error}</p>}
