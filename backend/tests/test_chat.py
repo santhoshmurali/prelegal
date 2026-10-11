@@ -2,12 +2,10 @@ from types import SimpleNamespace
 from typing import Any
 
 import pytest
-from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from prelegal_backend import chat
-from prelegal_backend.auth import SessionUser, current_user
-from prelegal_backend.chat import MODEL, MrLegalTurn, router
+from prelegal_backend.chat import MODEL, MrLegalTurn
 
 REQUEST_BODY: dict[str, Any] = {
     "messages": [{"role": "user", "content": "The purpose is evaluating a partnership."}],
@@ -19,14 +17,6 @@ REQUEST_BODY: dict[str, Any] = {
 def model_reply(content: str) -> SimpleNamespace:
     """Mimic the shape of a LiteLLM completion response."""
     return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content=content))])
-
-
-@pytest.fixture
-def client() -> TestClient:
-    app = FastAPI()
-    app.include_router(router)
-    app.dependency_overrides[current_user] = lambda: SessionUser(id=1, username="ana", is_admin=False)
-    return TestClient(app)
 
 
 @pytest.fixture
@@ -45,8 +35,8 @@ def fake_llm(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     return calls
 
 
-def test_returns_reply_document_and_only_known_changed_fields(client: TestClient, fake_llm: dict[str, Any]) -> None:
-    response = client.post("/api/chat", json=REQUEST_BODY)
+def test_returns_reply_document_and_only_known_changed_fields(chat_client: TestClient, fake_llm: dict[str, Any]) -> None:
+    response = chat_client.post("/api/chat", json=REQUEST_BODY)
 
     assert response.status_code == 200
     body = response.json()
@@ -58,9 +48,9 @@ def test_returns_reply_document_and_only_known_changed_fields(client: TestClient
 
 
 def test_sends_model_history_documents_current_values_and_schema(
-    client: TestClient, fake_llm: dict[str, Any]
+    chat_client: TestClient, fake_llm: dict[str, Any]
 ) -> None:
-    client.post("/api/chat", json=REQUEST_BODY)
+    chat_client.post("/api/chat", json=REQUEST_BODY)
 
     assert fake_llm["model"] == MODEL
     assert fake_llm["response_format"] is MrLegalTurn
@@ -75,52 +65,52 @@ def test_sends_model_history_documents_current_values_and_schema(
     }
 
 
-def test_no_fields_are_set_until_a_document_is_chosen(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_no_fields_are_set_until_a_document_is_chosen(chat_client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
     async def acompletion(**_: Any) -> SimpleNamespace:
         return model_reply('{"reply": "Which agreement do you need?", "documentId": null, "fieldUpdates": {"purpose": "x"}}')
 
     monkeypatch.setattr(chat.litellm, "acompletion", acompletion)
     body = {"messages": [{"role": "user", "content": "Hi"}]}
 
-    response = client.post("/api/chat", json=body)
+    response = chat_client.post("/api/chat", json=body)
 
     assert response.json() == {"reply": "Which agreement do you need?", "documentId": None, "fieldUpdates": {}}
 
 
 def test_upstream_rate_limit_returns_503_with_a_retry_message(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
+    chat_client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     async def acompletion(**_: Any) -> SimpleNamespace:
         raise chat.litellm.RateLimitError(message="busy", llm_provider="openrouter", model=MODEL)
 
     monkeypatch.setattr(chat.litellm, "acompletion", acompletion)
 
-    response = client.post("/api/chat", json=REQUEST_BODY)
+    response = chat_client.post("/api/chat", json=REQUEST_BODY)
 
     assert response.status_code == 503
     assert response.json()["detail"] == "Mr. Legal is busy right now. Please try again in a moment."
 
 
-def test_rejects_unknown_message_role(client: TestClient, fake_llm: dict[str, Any]) -> None:
+def test_rejects_unknown_message_role(chat_client: TestClient, fake_llm: dict[str, Any]) -> None:
     body = {"messages": [{"role": "system", "content": "x"}]}
 
-    response = client.post("/api/chat", json=body)
+    response = chat_client.post("/api/chat", json=body)
 
     assert response.status_code == 422
     assert fake_llm == {}
 
 
-def test_rejects_unknown_document_id(client: TestClient, fake_llm: dict[str, Any]) -> None:
+def test_rejects_unknown_document_id(chat_client: TestClient, fake_llm: dict[str, Any]) -> None:
     body = {**REQUEST_BODY, "documentId": "Not-A-Document"}
 
-    response = client.post("/api/chat", json=body)
+    response = chat_client.post("/api/chat", json=body)
 
     assert response.status_code == 422
     assert fake_llm == {}
 
 
 def test_unknown_document_id_is_rejected_even_when_model_chooses_none(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
+    chat_client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     async def acompletion(**_: Any) -> SimpleNamespace:
         return model_reply('{"reply": "Which one?", "documentId": null, "fieldUpdates": {}}')
@@ -128,15 +118,15 @@ def test_unknown_document_id_is_rejected_even_when_model_chooses_none(
     monkeypatch.setattr(chat.litellm, "acompletion", acompletion)
     body = {**REQUEST_BODY, "documentId": "Not-A-Document"}
 
-    response = client.post("/api/chat", json=body)
+    response = chat_client.post("/api/chat", json=body)
 
     assert response.status_code == 422
 
 
-def test_rejects_oversized_message(client: TestClient, fake_llm: dict[str, Any]) -> None:
+def test_rejects_oversized_message(chat_client: TestClient, fake_llm: dict[str, Any]) -> None:
     body = {"messages": [{"role": "user", "content": "x" * 10_000}]}
 
-    response = client.post("/api/chat", json=body)
+    response = chat_client.post("/api/chat", json=body)
 
     assert response.status_code == 422
     assert fake_llm == {}

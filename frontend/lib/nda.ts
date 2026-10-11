@@ -74,20 +74,12 @@ const years = (value: string) => (isValidYears(value) ? value.trim() : "[N]");
 
 const check = (on: boolean) => (on ? "[x]" : "[ ]");
 
-// YYYY-MM-DD in the user's local time zone (toISOString would use UTC).
-export function localDateString(date: Date = new Date()): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
-
-// Table cells must stay on one line.
-const cell = (value: string) => inline(value);
-
 export function buildCoverPage(f: NdaFields): string {
   const expires = f.mndaTermType === "expires";
   const limited = f.confidentialityType === "years";
+  // Table cells must stay on one line.
   const row = (label: string, a: string, b: string) =>
-    `| ${label} | ${cell(a)} | ${cell(b)} |`;
+    `| ${label} | ${inline(a)} | ${inline(b)} |`;
 
   return `# Mutual Non-Disclosure Agreement
 

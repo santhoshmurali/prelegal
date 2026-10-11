@@ -117,11 +117,6 @@ def delete_session(token: str) -> None:
         connection.execute("DELETE FROM sessions WHERE token_hash = ?", (_token_hash(token),))
 
 
-def to_session_user(row: sqlite3.Row) -> SessionUser:
-    """Build the signed-in user shown to the frontend from an account row."""
-    return SessionUser(id=row["id"], username=row["username"], is_admin=bool(row["is_admin"]))
-
-
 def session_user(token: str) -> SessionUser | None:
     """Return the signed-in user for a live token; expired sessions and deactivated accounts get None."""
     with closing(connect()) as connection:
@@ -132,7 +127,7 @@ def session_user(token: str) -> SessionUser | None:
         ).fetchone()
     if row is None or not row["is_active"]:
         return None
-    return to_session_user(row)
+    return SessionUser.model_validate(dict(row))
 
 
 def current_user(session_token: SessionToken = None) -> SessionUser:
@@ -155,7 +150,7 @@ def start_session(response: Response, user: sqlite3.Row) -> SessionUser:
         httponly=True,
         samesite="lax",
     )
-    return to_session_user(user)
+    return SessionUser.model_validate(dict(user))
 
 
 @router.post("/login")

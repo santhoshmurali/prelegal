@@ -5,7 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatTurn, DocumentSpec, Values } from "@/lib/documents";
 
-export type ChatMessage = { role: "user" | "assistant"; content: string };
+type ChatMessage = { role: "user" | "assistant"; content: string };
 
 const ENDPOINT = "/api/chat";
 

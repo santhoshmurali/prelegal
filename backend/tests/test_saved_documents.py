@@ -1,9 +1,5 @@
-from pathlib import Path
-
 import pytest
 from fastapi.testclient import TestClient
-
-from prelegal_backend.main import create_app
 
 NDA_DRAFT = {
     "documentId": "Mutual-NDA",
@@ -13,20 +9,10 @@ NDA_DRAFT = {
 
 
 @pytest.fixture
-def database_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    path = tmp_path / "data" / "test.db"
-    monkeypatch.setenv("DATABASE_PATH", str(path))
-    monkeypatch.setenv("SEED_USERNAME", "admin")
-    monkeypatch.setenv("SEED_PASSWORD", "seed-password-1")
-    return path
-
-
-@pytest.fixture
-def ana(database_file: Path, tmp_path: Path):
+def ana(client: TestClient) -> TestClient:
     """A signed-in user with their own cookie jar."""
-    with TestClient(create_app(static_dir=tmp_path / "missing")) as client:
-        client.post("/api/auth/signup", json={"username": "ana", "password": "ana-password-1"})
-        yield client
+    client.post("/api/auth/signup", json={"username": "ana", "password": "ana-password-1"})
+    return client
 
 
 @pytest.fixture
@@ -93,7 +79,6 @@ def test_unknown_document_is_rejected(ana: TestClient) -> None:
     assert response.status_code == 422
 
 
-def test_drafts_require_a_session(database_file: Path, tmp_path: Path) -> None:
-    with TestClient(create_app(static_dir=tmp_path / "missing")) as signed_out:
-        assert signed_out.get("/api/documents").status_code == 401
-        assert signed_out.post("/api/documents", json=NDA_DRAFT).status_code == 401
+def test_drafts_require_a_session(client: TestClient) -> None:
+    assert client.get("/api/documents").status_code == 401
+    assert client.post("/api/documents", json=NDA_DRAFT).status_code == 401

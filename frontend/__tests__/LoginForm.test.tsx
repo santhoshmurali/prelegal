@@ -2,16 +2,13 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import LoginForm from "@/components/LoginForm";
+import { fakeResponse } from "./helpers";
 
 const push = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
 }));
-
-function response(status: number) {
-  return { ok: status < 400, status, json: async () => ({}) } as Response;
-}
 
 async function signIn(username: string, password: string) {
   const user = userEvent.setup();
@@ -28,7 +25,7 @@ describe("LoginForm", () => {
   });
 
   it("posts the credentials and opens the platform on success", async () => {
-    vi.mocked(fetch).mockResolvedValue(response(200));
+    vi.mocked(fetch).mockResolvedValue(fakeResponse(200));
 
     await signIn("admin", "secret-pass");
 
@@ -41,7 +38,7 @@ describe("LoginForm", () => {
   });
 
   it("shows an error and stays on the page when the credentials are wrong", async () => {
-    vi.mocked(fetch).mockResolvedValue(response(401));
+    vi.mocked(fetch).mockResolvedValue(fakeResponse(401));
 
     await signIn("admin", "wrong");
 
@@ -50,7 +47,7 @@ describe("LoginForm", () => {
   });
 
   it("tells a deactivated user that the account is deactivated", async () => {
-    vi.mocked(fetch).mockResolvedValue(response(403));
+    vi.mocked(fetch).mockResolvedValue(fakeResponse(403));
 
     await signIn("ana", "secret-pass");
 

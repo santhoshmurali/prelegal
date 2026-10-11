@@ -1,22 +1,13 @@
 import sqlite3
 from pathlib import Path
 
-import pytest
 from fastapi.testclient import TestClient
 
 from prelegal_backend.main import create_app
 
 
-@pytest.fixture
-def database_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    path = tmp_path / "data" / "test.db"
-    monkeypatch.setenv("DATABASE_PATH", str(path))
-    return path
-
-
-def test_health_returns_ok(database_file: Path, tmp_path: Path) -> None:
-    with TestClient(create_app(static_dir=tmp_path / "missing")) as client:
-        response = client.get("/api/health")
+def test_health_returns_ok(client: TestClient) -> None:
+    response = client.get("/api/health")
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}

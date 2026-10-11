@@ -3,15 +3,12 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ChatPanel, { buildIntro } from "@/components/ChatPanel";
 import type { ChatTurn, DocumentSpec } from "@/lib/documents";
+import { fakeResponse } from "./helpers";
 
 const documents: DocumentSpec[] = [
   { id: "Mutual-NDA", name: "Mutual Non-Disclosure Agreement", description: "NDA for sharing secrets.", template: "a.md", fields: [] },
   { id: "CSA", name: "Cloud Service Agreement", description: "SaaS on a subscription.", template: "b.md", fields: [] },
 ];
-
-function jsonResponse(body: unknown, ok = true): Response {
-  return { ok, status: ok ? 200 : 500, json: async () => body } as Response;
-}
 
 const turn = (overrides: Partial<ChatTurn> = {}): ChatTurn => ({
   reply: "Thanks.",
@@ -42,7 +39,7 @@ describe("ChatPanel", () => {
   it("sends the history, chosen document and current values, then reports the turn", async () => {
     const onTurn = vi.fn();
     const reply = turn({ reply: "Which state?", documentId: "Mutual-NDA", fieldUpdates: { purpose: "Sales" } });
-    vi.mocked(fetch).mockResolvedValue(jsonResponse(reply));
+    vi.mocked(fetch).mockResolvedValue(fakeResponse(200, reply));
     const user = userEvent.setup();
     render(<ChatPanel documents={documents} documentId="Mutual-NDA" values={{ governingLaw: "Texas" }} onTurn={onTurn} />);
 
@@ -62,7 +59,7 @@ describe("ChatPanel", () => {
 
   it("renders the reply's questions as a Markdown bullet list", async () => {
     vi.mocked(fetch).mockResolvedValue(
-      jsonResponse(turn({ reply: "I still need:\n\n- The effective date?\n- The jurisdiction?" })),
+      fakeResponse(200, turn({ reply: "I still need:\n\n- The effective date?\n- The jurisdiction?" })),
     );
     const user = userEvent.setup();
     render(<ChatPanel documents={documents} documentId={null} values={{}} onTurn={vi.fn()} />);
@@ -75,7 +72,7 @@ describe("ChatPanel", () => {
 
   it("shows an error when the request fails and reports no turn", async () => {
     const onTurn = vi.fn();
-    vi.mocked(fetch).mockResolvedValue(jsonResponse({}, false));
+    vi.mocked(fetch).mockResolvedValue(fakeResponse(500));
     const user = userEvent.setup();
     render(<ChatPanel documents={documents} documentId={null} values={{}} onTurn={onTurn} />);
 

@@ -1,28 +1,6 @@
-import sqlite3
-from pathlib import Path
-
-import pytest
 from fastapi.testclient import TestClient
 
-from prelegal_backend.main import create_app
-
-SEED_USERNAME = "admin"
-SEED_PASSWORD = "seed-password-1"
-
-
-@pytest.fixture
-def database_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    path = tmp_path / "data" / "test.db"
-    monkeypatch.setenv("DATABASE_PATH", str(path))
-    monkeypatch.setenv("SEED_USERNAME", SEED_USERNAME)
-    monkeypatch.setenv("SEED_PASSWORD", SEED_PASSWORD)
-    return path
-
-
-@pytest.fixture
-def client(database_file: Path, tmp_path: Path):
-    with TestClient(create_app(static_dir=tmp_path / "missing")) as test_client:
-        yield test_client
+from conftest import SEED_PASSWORD, SEED_USERNAME
 
 
 def sign_up(client: TestClient, username: str, password: str):
