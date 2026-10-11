@@ -42,7 +42,14 @@ The admin sees a "Users" link in the top bar. It lists every account. Use "Deact
 
 If you ask for an agreement that is not supported, Mr. Legal asks a few questions and drafts the closest supported document. It tells you which one it chose and why, and the draft may need changes.
 
-Refreshing the page clears the conversation and the preview.
+Refreshing the page clears the conversation. Your saved document reopens from the address (`?doc=<id>`), but the chat starts fresh.
+
+## Saved documents
+
+- Once Mr. Legal picks a document, it is saved to your account. It keeps saving as your answers change.
+- The "My documents" panel above the chat lists your drafts, newest first. Click one to reopen it. Its details come back into the preview, and you can carry on with Mr. Legal.
+- "New document" starts a blank draft. The draft you were working on is kept.
+- Only you can see your drafts. The admin cannot open them.
 
 Mr. Legal is not a lawyer and does not give legal advice.
 

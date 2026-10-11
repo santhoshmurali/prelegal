@@ -10,14 +10,16 @@ A platform for drafting common legal agreements.
 - `scripts/`: Start and stop scripts for Docker.
 - `Dockerfile`: Two stages. Builds the frontend, then runs the backend on port 8000.
 
-## Current milestone: Multiple users, steps 1-2 of 4 (PL-8)
+## Current milestone: Multiple users, steps 1-3 of 4 (PL-8)
+
+- Saved documents (`/api/documents`, owner-only): drafts are saved as Mr. Legal picks a document and as values change. Reopen one from "My documents" or with `/platform/?doc=<id>`.
 
 - Sign in with a session cookie (`POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`). Passwords are salted scrypt hashes.
 - The admin is seeded once from `SEED_USERNAME` / `SEED_PASSWORD` when the `users` table is empty.
 - `POST /api/chat` requires a signed-in session.
 - Sign up at `/signup/` (`POST /api/auth/signup`). New accounts are active and signed in at once.
 - Admin page `/admin/` lists accounts and activates or deactivates them (`/api/admin/*`, admin only).
-- Still to come: saved documents, and the visual polish with the disclaimer.
+- Still to come: the visual polish with the disclaimer (step 4).
 
 ## Mr. Legal for all supported documents (PL-7)
 

@@ -8,7 +8,7 @@ The available documents are covered in the catalog.json file in the project root
 
 @catalog.json
 
-Current state: all 11 supported documents are built. The platform is a Mr. Legal AI chat beside a live preview, and the chat fills in the document's fields. Requests for unsupported documents get limited help: Mr. Legal drafts the closest supported document. Users sign up or sign in with a one-hour session cookie. An admin seeded from `.env` manages user activation. Saved documents are not built yet (PL-8 step 3). See "Implementation status" at the end of this file.
+Current state: all 11 supported documents are built. The platform is a Mr. Legal AI chat beside a live preview, and the chat fills in the document's fields. Requests for unsupported documents get limited help: Mr. Legal drafts the closest supported document. Users sign up or sign in with a one-hour session cookie. An admin seeded from `.env` manages user activation. Each user's drafts are saved and can be reopened from "My documents" (PL-8 step 3). Only the polish and disclaimer remain (PL-8 step 4). See "Implementation status" at the end of this file.
 
 ## Development process
 
@@ -76,7 +76,7 @@ Stack: Next.js 16.4 + React 19.3 (`frontend/`, static export), FastAPI on uv (`b
 Jira and git status:
 - PL-5 (Foundation V1), PL-6 (Mr. Legal for the NDA) and PL-7 (all documents) are Done. PR #8 and PR #9 are merged and closed on GitHub (merged 2026-10-11).
 - PL-8 (Support Multiple Users & Final Push) is In Progress, split into four PRs. Step 1 (PR #10, sign-in and sessions) and step 2 (PR #11, sign-up and admin) are merged into `main` and pushed. PR #10 closed as merged on GitHub. PR #11 was merged locally (`20f9b84`) and commented, then closed on GitHub without the merged flag, because its base was the step-1 branch.
-- Steps 3 (saved documents) and 4 (polish and disclaimer) are not yet built.
+- Step 3 (saved documents) is built on branch `PL-8-step-3-saved-documents`, PR pending. Step 4 (polish and disclaimer) is not yet built.
 
 Testing: run Docker tests from a freshly built image, then stop and wipe the container, image and volume (`scripts/stop-windows-wipe-volumne.ps1`).
 
@@ -84,7 +84,7 @@ Built:
 - **Templates (PL-2):** 12 entries in `catalog.json` cover 11 documents. The Mutual NDA is two files (cover page and standard terms).
 - **Mutual NDA (PL-4):** `frontend/lib/nda.ts` builds the NDA cover page and document, unchanged in PL-7.
 - **Document registry (PL-7):** `templates/documents.json` lists the 11 documents, their template files and their fields. `backend/src/prelegal_backend/documents.py` loads it, and `frontend/lib/templates.ts` reads it at build time. `frontend/lib/documents.ts` maps chat values onto each preview.
-- **Platform (PL-4, PL-7):** `/platform/` is a Mr. Legal chat panel (`frontend/components/ChatPanel.tsx`) beside a preview (`frontend/components/DocumentPreview.tsx`), with `Platform.tsx` holding the state. The chat replaces the form. Users cannot edit fields by hand. `PlatformShell.tsx` wraps the page: it shows the header with the signed-in username, a Users link for the admin, and Sign out, and it sends signed-out visitors to `/`.
+- **Platform (PL-4, PL-7):** `/platform/` is a Mr. Legal chat panel (`frontend/components/ChatPanel.tsx`) beside a preview (`frontend/components/DocumentPreview.tsx`), with `Platform.tsx` holding the state. The chat replaces the form. Users cannot edit fields by hand. `MyDocuments.tsx` lists the user's saved drafts above the chat. Opening one loads it with `?doc=<id>` in the address. `Platform.tsx` saves a draft (POST, then PUT) each time a turn picks a document, with the title from the document name and the first party's name. `PlatformShell.tsx` wraps the page: it shows the header with the signed-in username, a Users link for the admin, and Sign out, and it sends signed-out visitors to `/`.
 - **Login and sign-up (PL-5, PL-8 steps 1-2):** `/` is the sign-in form (`LoginForm.tsx`). `/signup/` creates an account (`SignupForm.tsx`) and signs it in. Backend `backend/src/prelegal_backend/auth.py`:
   - Passwords are salted scrypt hashes (stdlib `hashlib.scrypt`).
   - Sessions are opaque random tokens. Only their SHA-256 is stored, in the `sessions` table, with `expires_at` one hour after sign in. The cookie is `prelegal_session`, HttpOnly, SameSite=Lax, Max-Age 3600.
@@ -95,14 +95,14 @@ Built:
 - **Foundation V1 (PL-5):** `backend/src/prelegal_backend/main.py` serves `/api/health`, the auth and admin routers, and the static frontend. `db.py` creates the `users` and `sessions` tables from scratch at `DATABASE_PATH` (default `data/prelegal.db`; Docker volume `prelegal-data` at `/app/data`). Tables are not altered, so a volume created before PL-8 must be wiped.
 - **Mr. Legal chat (PL-6, PL-7):** introduces itself, lists the supported documents, asks one question per reply and fills the preview after each answer. Vague answers get a clarifying question. Replies render as Markdown. Chat history lives in the page session only. Backend `POST /api/chat` requires a signed-in session (PL-8 step 1). Earlier PL-7 Docker verification: 10 of 10 end-to-end checks and 5 of 5 three-turn NDA conversations over HTTP. One live run hit an upstream CoreWeave rate limit and returned 503; a rerun passed.
 - **Docker and scripts:** two-stage Dockerfile on port 8000. The start scripts pass `.env` into the container. Windows has start, stop and wipe scripts. Mac and Linux have start and stop only. `.env` seed values must have no quotes, because Docker `--env-file` keeps them (see `Docs/lessons-learnt.md`).
-- **Tests:** backend 44 unit tests on host, 46 in Docker including the 2 live LLM tests (`RUN_LIVE_TESTS=1`). Frontend 50 tests (`cd frontend && npm test`, Vitest, `__tests__/`).
+- **Saved documents (PL-8 step 3):** `backend/src/prelegal_backend/saved_documents.py`, a `documents` table (owner, document id, title, values as JSON, timestamps). `GET /api/documents` lists the user's drafts, newest first. `POST /api/documents` creates one (201). `GET /api/documents/{id}` and `PUT /api/documents/{id}` read and overwrite one. Values go through the chat's validation (`document_updates`), so unknown keys and invalid values are dropped. Drafts belong to their owner only: another user gets 404, and the admin cannot open them. Chat history is not saved.
+- **Tests:** backend 51 unit tests on host, 53 in Docker including the 2 live LLM tests (`RUN_LIVE_TESTS=1`). Frontend 53 tests (`cd frontend && npm test`, Vitest, `__tests__/`).
 
 Verified in Docker for PL-8:
 - Step 1 (PR #10): sign-in, admin seed, cookie lifetime, auth on chat, logout, and sign-in after a container restart.
 - Step 2 (PR #11): 15 of 15 checks over HTTP covering sign-up, admin routes, self-deactivation, deactivation ending a live session, reactivation, and the pages. The container log had no errors.
 
 Not yet built:
-- PL-8 step 3: saved documents. Users can reopen and edit their own documents from a "My documents" list at `/platform/?doc=<id>`.
 - PL-8 step 4: colour polish across screens and the draft disclaimer on the sign-in page and under the preview.
 - Legal review of the 10 non-NDA field lists in `templates/documents.json`. They were drafted from the template titles and need a lawyer's check.
 - Mac and Linux wipe scripts.

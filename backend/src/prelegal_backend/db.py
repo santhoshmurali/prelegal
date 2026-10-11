@@ -27,6 +27,18 @@ CREATE TABLE IF NOT EXISTS sessions (
 )
 """
 
+DOCUMENTS_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS documents (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    owner_id INTEGER NOT NULL REFERENCES users(id),
+    document_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    values_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+)
+"""
+
 
 def database_path() -> Path:
     """Return the SQLite file path, overridable with DATABASE_PATH."""
@@ -46,3 +58,4 @@ def init_database(path: Path) -> None:
     with closing(sqlite3.connect(path)) as connection, connection:
         connection.execute(USERS_TABLE_SQL)
         connection.execute(SESSIONS_TABLE_SQL)
+        connection.execute(DOCUMENTS_TABLE_SQL)
