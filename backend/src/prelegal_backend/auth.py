@@ -10,13 +10,14 @@ import secrets
 import sqlite3
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 from prelegal_backend.db import connect
 
 SESSION_COOKIE = "prelegal_session"
 SESSION_LIFETIME = timedelta(hours=1)
+MIN_PASSWORD_LENGTH = 8
 SALT_BYTES = 16
 KEY_BYTES = 64
 SCRYPT_PARAMS = {"n": 2**14, "r": 8, "p": 1}
@@ -27,6 +28,13 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 class LoginRequest(BaseModel):
     username: str
     password: str
+
+
+class SignupRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    username: str = Field(min_length=1)
+    password: str = Field(min_length=MIN_PASSWORD_LENGTH)
 
 
 class SessionUser(BaseModel):
@@ -132,6 +140,23 @@ def current_user(session_token: SessionToken = None) -> SessionUser:
 CurrentUser = Annotated[SessionUser, Depends(current_user)]
 
 
+def to_session_user(row: sqlite3.Row) -> SessionUser:
+    """Build the signed-in user shown to the frontend from an account row."""
+    return SessionUser(id=row["id"], username=row["username"], is_admin=bool(row["is_admin"]))
+
+
+def start_session(response: Response, user: sqlite3.Row) -> SessionUser:
+    """Set the session cookie for an account and return the signed-in user."""
+    response.set_cookie(
+        SESSION_COOKIE,
+        create_session(user["id"]),
+        max_age=int(SESSION_LIFETIME.total_seconds()),
+        httponly=True,
+        samesite="lax",
+    )
+    return to_session_user(user)
+
+
 @router.post("/login")
 def login(credentials: LoginRequest, response: Response) -> SessionUser:
     """Check credentials and set the session cookie."""
@@ -140,14 +165,16 @@ def login(credentials: LoginRequest, response: Response) -> SessionUser:
         raise HTTPException(status_code=401, detail="Invalid username or password.")
     if not user["is_active"]:
         raise HTTPException(status_code=403, detail="This account has been deactivated.")
-    response.set_cookie(
-        SESSION_COOKIE,
-        create_session(user["id"]),
-        max_age=int(SESSION_LIFETIME.total_seconds()),
-        httponly=True,
-        samesite="lax",
-    )
-    return SessionUser(id=user["id"], username=user["username"], is_admin=bool(user["is_admin"]))
+    return start_session(response, user)
+
+
+@router.post("/signup", status_code=201)
+def signup(details: SignupRequest, response: Response) -> SessionUser:
+    """Create an active account and sign it in."""
+    if find_user(details.username) is not None:
+        raise HTTPException(status_code=409, detail="That username is taken.")
+    insert_user(details.username, details.password)
+    return start_session(response, find_user(details.username))
 
 
 @router.post("/logout", status_code=204)
