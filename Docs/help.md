@@ -18,15 +18,19 @@ The wipe script also removes the volume, so the database is created fresh next t
 
 Any username and password opens the platform. Sign-in is a placeholder in V1.
 
-## Chat with Mr. Legal
+## Draft a document with Mr. Legal
 
-1. Open the platform and click **Chat with Mr. Legal** in the bottom-right corner.
-2. Describe the deal in your own words, for example "We want an NDA with Acme Ltd for evaluating a partnership, under Delaware law."
-3. Mr. Legal asks one question at a time, in conversation, about the next missing detail. Answer it, and the next question follows.
-4. The form and preview update after each answer. Edit any field by hand at any time.
-5. Refreshing the page clears the conversation. The form values are kept only while the page stays open.
+1. Open the platform. Mr. Legal introduces itself and lists the agreements it supports.
+2. Describe what you need, for example "We want an NDA with Acme Ltd for evaluating a partnership, under Delaware law."
+3. Mr. Legal asks one question at a time about the next missing detail. Answer it, and the next question follows.
+4. The preview on the right fills in after each answer. Download it as Markdown, or print it or save it as PDF.
+5. Ask "what can you help with?" at any time to see the supported agreements.
 
-Mr. Legal is not a lawyer and does not give legal advice. It only helps with the Mutual NDA.
+If you ask for an agreement that is not supported, Mr. Legal asks a few questions and drafts the closest supported document. It tells you which one it chose and why, and the draft may need changes.
+
+Refreshing the page clears the conversation and the preview.
+
+Mr. Legal is not a lawyer and does not give legal advice.
 
 The chat needs `OPENROUTER_API_KEY` in `.env`. The start scripts pass `.env` into the container.
 
@@ -37,3 +41,18 @@ The chat needs `OPENROUTER_API_KEY` in `.env`. The start scripts pass `.env` int
   the build container does not trust it. Turn off HTTPS scanning for the build, or add
   the certificate to the image.
 - **Port 8000 is busy**: stop the other process, or run the stop script first.
+- **"Mr. Legal is busy right now"**: the AI provider is rate-limited. Wait a moment and send the message again.
+- **Mr. Legal is unavailable**: check that `OPENROUTER_API_KEY` is set in `.env`, then restart the container with the start script.
+
+## Run the tests in Docker
+
+Run the backend tests in a container from the built image. The registry test also needs `catalog.json`, which the image does not contain, so mount it:
+
+```powershell
+docker run --rm --env-file .env -e RUN_LIVE_TESTS=1 `
+  -v "${PWD}\backend\tests:/app/backend/tests:ro" `
+  -v "${PWD}\catalog.json:/app/catalog.json:ro" prelegal `
+  sh -c "uv run pytest -v -p no:cacheprovider"
+```
+
+Drop `-e RUN_LIVE_TESTS=1` to skip the two live LLM tests.

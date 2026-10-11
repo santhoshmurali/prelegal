@@ -19,6 +19,7 @@ ENV UV_COMPILE_BYTECODE=1 \
 COPY backend/pyproject.toml backend/uv.lock backend/.python-version ./
 RUN uv sync --frozen --no-dev --no-install-project
 COPY backend/src ./src
+COPY templates /app/templates
 RUN uv sync --frozen --no-dev
 COPY --from=frontend-build /app/frontend/out /app/frontend/out
 VOLUME /app/data

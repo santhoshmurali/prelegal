@@ -1,0 +1,208 @@
+[
+  {
+    "id": "Mutual-NDA",
+    "name": "Mutual Non-Disclosure Agreement",
+    "description": "Common Paper mutual NDA: the parties set the purpose, term and confidentiality period for sharing confidential information.",
+    "template": "Mutual-NDA.md",
+    "fields": [
+      {"key": "purpose", "label": "Purpose", "hint": "How Confidential Information may be used"},
+      {"key": "effectiveDate", "label": "Effective date", "hint": "YYYY-MM-DD"},
+      {"key": "mndaTermType", "label": "MNDA term", "hint": "expires or continues until terminated", "options": ["expires", "continues"]},
+      {"key": "mndaTermYears", "label": "MNDA term in years", "hint": "digits only, e.g. 2"},
+      {"key": "confidentialityType", "label": "Confidentiality term", "hint": "years or perpetuity", "options": ["years", "perpetuity"]},
+      {"key": "confidentialityYears", "label": "Confidentiality term in years", "hint": "digits only, e.g. 3"},
+      {"key": "governingLaw", "label": "Governing law (state)", "hint": "e.g. Delaware"},
+      {"key": "jurisdiction", "label": "Jurisdiction", "hint": "city or county and state"},
+      {"key": "modifications", "label": "Modifications to the MNDA", "hint": "free text, or none"},
+      {"key": "party1Name", "label": "Party 1 name", "hint": "full name of the signatory"},
+      {"key": "party1Title", "label": "Party 1 title", "hint": ""},
+      {"key": "party1Company", "label": "Party 1 company", "hint": ""},
+      {"key": "party1NoticeAddress", "label": "Party 1 notice address", "hint": "email or postal address"},
+      {"key": "party1Date", "label": "Party 1 signature date", "hint": "YYYY-MM-DD"},
+      {"key": "party2Name", "label": "Party 2 name", "hint": "full name of the signatory"},
+      {"key": "party2Title", "label": "Party 2 title", "hint": ""},
+      {"key": "party2Company", "label": "Party 2 company", "hint": ""},
+      {"key": "party2NoticeAddress", "label": "Party 2 notice address", "hint": "email or postal address"},
+      {"key": "party2Date", "label": "Party 2 signature date", "hint": "YYYY-MM-DD"}
+    ]
+  },
+  {
+    "id": "CSA",
+    "name": "Cloud Service Agreement",
+    "description": "Common Paper agreement for providing access to a cloud service (SaaS) on a subscription basis.",
+    "template": "CSA.md",
+    "fields": [
+      {"key": "purpose", "label": "Services and scope", "hint": "the cloud service the customer will use"},
+      {"key": "effectiveDate", "label": "Effective date", "hint": "YYYY-MM-DD"},
+      {"key": "subscriptionPeriod", "label": "Subscription period", "hint": "e.g. 12 months"},
+      {"key": "fees", "label": "Fees and payment terms", "hint": "amount and schedule"},
+      {"key": "governingLaw", "label": "Governing law (state)", "hint": "e.g. Delaware"},
+      {"key": "jurisdiction", "label": "Jurisdiction", "hint": "city or county and state"},
+      {"key": "party1Name", "label": "Provider signatory name", "hint": ""},
+      {"key": "party1Company", "label": "Provider company", "hint": ""},
+      {"key": "party1Title", "label": "Provider signatory title", "hint": ""},
+      {"key": "party1NoticeAddress", "label": "Provider notice address", "hint": ""},
+      {"key": "party2Name", "label": "Customer signatory name", "hint": ""},
+      {"key": "party2Company", "label": "Customer company", "hint": ""},
+      {"key": "party2Title", "label": "Customer signatory title", "hint": ""},
+      {"key": "party2NoticeAddress", "label": "Customer notice address", "hint": ""}
+    ]
+  },
+  {
+    "id": "sla",
+    "name": "Service Level Agreement",
+    "description": "Common Paper SLA covering target uptime, response times and remedies for a cloud service.",
+    "template": "sla.md",
+    "fields": [
+      {"key": "purpose", "label": "Service covered", "hint": "the cloud service the SLA applies to"},
+      {"key": "effectiveDate", "label": "Effective date", "hint": "YYYY-MM-DD"},
+      {"key": "uptimeTarget", "label": "Target uptime", "hint": "e.g. 99.9%"},
+      {"key": "supportResponseTime", "label": "Support response time", "hint": "e.g. 1 hour"},
+      {"key": "remedies", "label": "Remedies for missed targets", "hint": "e.g. service credits"},
+      {"key": "governingLaw", "label": "Governing law (state)", "hint": "e.g. Delaware"},
+      {"key": "party1Name", "label": "Provider signatory name", "hint": ""},
+      {"key": "party1Company", "label": "Provider company", "hint": ""},
+      {"key": "party2Name", "label": "Customer signatory name", "hint": ""},
+      {"key": "party2Company", "label": "Customer company", "hint": ""}
+    ]
+  },
+  {
+    "id": "DPA",
+    "name": "Data Processing Agreement",
+    "description": "Common Paper DPA governing processing of personal data between a controller and a processor or subprocessor.",
+    "template": "DPA.md",
+    "fields": [
+      {"key": "purpose", "label": "Purpose of processing", "hint": "why personal data is processed"},
+      {"key": "effectiveDate", "label": "Effective date", "hint": "YYYY-MM-DD"},
+      {"key": "personalDataCategories", "label": "Categories of personal data", "hint": "e.g. contact details, usage data"},
+      {"key": "subprocessors", "label": "Approved subprocessors", "hint": "names, or none"},
+      {"key": "governingLaw", "label": "Governing law (state)", "hint": "e.g. Delaware"},
+      {"key": "party1Name", "label": "Controller signatory name", "hint": ""},
+      {"key": "party1Company", "label": "Controller company", "hint": ""},
+      {"key": "party2Name", "label": "Processor signatory name", "hint": ""},
+      {"key": "party2Company", "label": "Processor company", "hint": ""}
+    ]
+  },
+  {
+    "id": "design-partner-agreement",
+    "name": "Design Partner Agreement",
+    "description": "Common Paper agreement giving a design partner early access to a product in exchange for feedback.",
+    "template": "design-partner-agreement.md",
+    "fields": [
+      {"key": "purpose", "label": "Product or early-access service", "hint": "what the design partner will use"},
+      {"key": "effectiveDate", "label": "Effective date", "hint": "YYYY-MM-DD"},
+      {"key": "feedbackTerms", "label": "Feedback expectations", "hint": "e.g. weekly calls"},
+      {"key": "fees", "label": "Fees", "hint": "amount, or none"},
+      {"key": "governingLaw", "label": "Governing law (state)", "hint": "e.g. Delaware"},
+      {"key": "jurisdiction", "label": "Jurisdiction", "hint": "city or county and state"},
+      {"key": "party1Name", "label": "Provider signatory name", "hint": ""},
+      {"key": "party1Company", "label": "Provider company", "hint": ""},
+      {"key": "party2Name", "label": "Design partner signatory name", "hint": ""},
+      {"key": "party2Company", "label": "Design partner company", "hint": ""}
+    ]
+  },
+  {
+    "id": "psa",
+    "name": "Professional Services Agreement",
+    "description": "Common Paper agreement for professional services performed under statements of work (SOWs).",
+    "template": "psa.md",
+    "fields": [
+      {"key": "purpose", "label": "Services", "hint": "the professional services to be performed"},
+      {"key": "effectiveDate", "label": "Effective date", "hint": "YYYY-MM-DD"},
+      {"key": "fees", "label": "Fees and payment terms", "hint": "rates or fixed fee, and schedule"},
+      {"key": "governingLaw", "label": "Governing law (state)", "hint": "e.g. Delaware"},
+      {"key": "jurisdiction", "label": "Jurisdiction", "hint": "city or county and state"},
+      {"key": "party1Name", "label": "Provider signatory name", "hint": ""},
+      {"key": "party1Company", "label": "Provider company", "hint": ""},
+      {"key": "party2Name", "label": "Client signatory name", "hint": ""},
+      {"key": "party2Company", "label": "Client company", "hint": ""}
+    ]
+  },
+  {
+    "id": "Partnership-Agreement",
+    "name": "Partnership Agreement",
+    "description": "Common Paper agreement setting out the obligations and terms of a business partnership between two parties.",
+    "template": "Partnership-Agreement.md",
+    "fields": [
+      {"key": "purpose", "label": "Partnership purpose", "hint": "the business the partners will pursue"},
+      {"key": "effectiveDate", "label": "Effective date", "hint": "YYYY-MM-DD"},
+      {"key": "capitalContributions", "label": "Capital contributions", "hint": "what each partner contributes"},
+      {"key": "profitSharing", "label": "Profit and loss sharing", "hint": "e.g. 50/50"},
+      {"key": "governingLaw", "label": "Governing law (state)", "hint": "e.g. Delaware"},
+      {"key": "jurisdiction", "label": "Jurisdiction", "hint": "city or county and state"},
+      {"key": "party1Name", "label": "Partner 1 name", "hint": ""},
+      {"key": "party1Company", "label": "Partner 1 company", "hint": ""},
+      {"key": "party2Name", "label": "Partner 2 name", "hint": ""},
+      {"key": "party2Company", "label": "Partner 2 company", "hint": ""}
+    ]
+  },
+  {
+    "id": "BAA",
+    "name": "Business Associate Agreement",
+    "description": "Common Paper BAA for handling protected health information (PHI) in line with HIPAA.",
+    "template": "BAA.md",
+    "fields": [
+      {"key": "purpose", "label": "Underlying services", "hint": "the services that involve PHI"},
+      {"key": "effectiveDate", "label": "Effective date", "hint": "YYYY-MM-DD"},
+      {"key": "permittedUses", "label": "Permitted uses of PHI", "hint": "e.g. providing the services"},
+      {"key": "governingLaw", "label": "Governing law (state)", "hint": "e.g. Delaware"},
+      {"key": "party1Name", "label": "Covered entity signatory name", "hint": ""},
+      {"key": "party1Company", "label": "Covered entity name", "hint": ""},
+      {"key": "party2Name", "label": "Business associate signatory name", "hint": ""},
+      {"key": "party2Company", "label": "Business associate name", "hint": ""}
+    ]
+  },
+  {
+    "id": "Software-License-Agreement",
+    "name": "Software License Agreement",
+    "description": "Common Paper agreement licensing software to a customer to install and use.",
+    "template": "Software-License-Agreement.md",
+    "fields": [
+      {"key": "purpose", "label": "Software", "hint": "name and version of the software"},
+      {"key": "effectiveDate", "label": "Effective date", "hint": "YYYY-MM-DD"},
+      {"key": "licenseScope", "label": "Permitted use", "hint": "users, devices or locations"},
+      {"key": "licenseFee", "label": "License fee", "hint": "amount and payment terms"},
+      {"key": "governingLaw", "label": "Governing law (state)", "hint": "e.g. Delaware"},
+      {"key": "jurisdiction", "label": "Jurisdiction", "hint": "city or county and state"},
+      {"key": "party1Name", "label": "Licensor signatory name", "hint": ""},
+      {"key": "party1Company", "label": "Licensor company", "hint": ""},
+      {"key": "party2Name", "label": "Licensee signatory name", "hint": ""},
+      {"key": "party2Company", "label": "Licensee company", "hint": ""}
+    ]
+  },
+  {
+    "id": "Pilot-Agreement",
+    "name": "Pilot Agreement",
+    "description": "Common Paper agreement for a time-limited pilot or evaluation of a product.",
+    "template": "Pilot-Agreement.md",
+    "fields": [
+      {"key": "purpose", "label": "Product being piloted", "hint": "what the customer will evaluate"},
+      {"key": "effectiveDate", "label": "Effective date", "hint": "YYYY-MM-DD"},
+      {"key": "pilotDuration", "label": "Pilot duration", "hint": "e.g. 60 days"},
+      {"key": "successCriteria", "label": "Success criteria", "hint": "how the pilot is judged"},
+      {"key": "pilotFees", "label": "Pilot fees", "hint": "amount, or none"},
+      {"key": "governingLaw", "label": "Governing law (state)", "hint": "e.g. Delaware"},
+      {"key": "party1Name", "label": "Provider signatory name", "hint": ""},
+      {"key": "party1Company", "label": "Provider company", "hint": ""},
+      {"key": "party2Name", "label": "Pilot customer signatory name", "hint": ""},
+      {"key": "party2Company", "label": "Pilot customer company", "hint": ""}
+    ]
+  },
+  {
+    "id": "AI-Addendum",
+    "name": "AI Addendum",
+    "description": "Common Paper addendum adding terms for AI services, inputs, outputs and training to an underlying agreement.",
+    "template": "AI-Addendum.md",
+    "fields": [
+      {"key": "purpose", "label": "Underlying agreement", "hint": "the agreement this addendum amends"},
+      {"key": "effectiveDate", "label": "Effective date", "hint": "YYYY-MM-DD"},
+      {"key": "aiServices", "label": "AI services covered", "hint": "the AI features in scope"},
+      {"key": "trainingUse", "label": "Use of customer data for training", "hint": "allowed or not allowed"},
+      {"key": "governingLaw", "label": "Governing law (state)", "hint": "e.g. Delaware"},
+      {"key": "party1Name", "label": "Provider signatory name", "hint": ""},
+      {"key": "party1Company", "label": "Provider company", "hint": ""},
+      {"key": "party2Name", "label": "Customer signatory name", "hint": ""},
+      {"key": "party2Company", "label": "Customer company", "hint": ""}
+    ]
+  }
+]
