@@ -11,6 +11,8 @@ import {
   type NdaFields,
   type PartyFields,
 } from "@/lib/nda";
+import { applyChanges } from "@/lib/chat";
+import MrLegalChat from "@/components/MrLegalChat";
 
 const input =
   "w-full rounded border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-blue-600 focus:outline-none";
@@ -270,6 +272,11 @@ export default function NdaCreator({ terms }: { terms: string }) {
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
         </article>
       </section>
+
+      <MrLegalChat
+        fields={fields}
+        onChanges={(changes) => setFields((f) => applyChanges(f, changes))}
+      />
     </div>
   );
 }

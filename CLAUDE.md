@@ -25,7 +25,7 @@ When writing code to make calls to LLMs, use your "coreweave-inference" skill to
 
 There is an OPENROUTER_API_KEY in the .env file in the project root.
 
-Status: not yet implemented. No LLM calls exist in the code.
+Status: built for the Mutual NDA (PL-6). `backend/src/prelegal_backend/chat.py` calls `openai/gpt-oss-120b` via LiteLLM and OpenRouter, with CoreWeave as the only provider, and uses Structured Outputs. Field extraction is not reliable on every turn (see `Docs/lessons-learnt.md`).
 
 ## Technical design
 
@@ -69,12 +69,12 @@ Built:
 - **Templates (PL-2):** 12 agreements in `templates/`, indexed by `catalog.json`.
 - **Mutual NDA creator (PL-4):** `/platform/`. `frontend/components/NdaCreator.tsx` is the form and preview, `frontend/lib/nda.ts` builds the document, `frontend/lib/templates.ts` loads terms from `templates/` at build time.
 - **Foundation V1 (PL-5):** fake login at `/` (`LoginForm.tsx`, no credential check, opens `/platform/`). `backend/src/prelegal_backend/main.py` serves `/api/health` and the static frontend. `db.py` creates the `users` table from scratch at `DATABASE_PATH` (default `data/prelegal.db`; Docker volume `prelegal-data` at `/app/data`).
-- **Docker and scripts:** two-stage Dockerfile on port 8000. Windows has start, stop and wipe scripts. Mac and Linux have start and stop only.
-- **Tests:** backend `cd backend && uv run pytest` (4 tests). Frontend `cd frontend && npm test` (Vitest, `__tests__/`).
+- **Mr. Legal chat (PL-6):** floating chat on `/platform/`, Mutual NDA only. It fills the form from the conversation. Backend `POST /api/chat/mutual-nda`.
+- **Docker and scripts:** two-stage Dockerfile on port 8000. The start scripts pass `.env` into the container. Windows has start, stop and wipe scripts. Mac and Linux have start and stop only.
+- **Tests:** backend `cd backend && uv run pytest` (11 unit tests, LLM mocked). Live LLM checks: `RUN_LIVE_TESTS=1 uv run pytest tests/test_chat_live.py` (needs `OPENROUTER_API_KEY`). Frontend `cd frontend && npm test` (Vitest, `__tests__/`).
 
 Not yet built:
-- AI chat and LLM calls (OpenRouter / CoreWeave, Structured Outputs).
-- The other 11 document types in the UI.
+- Mr. Legal for the other 11 document types, and help for unsupported ones.
 - Real sign up and sign in. `users.password_hash` exists but is unused.
 - `SEED_USERNAME` / `SEED_PASSWORD` admin seeding.
 - Document persistence.

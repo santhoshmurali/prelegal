@@ -10,10 +10,16 @@ A platform for drafting common legal agreements.
 - `scripts/`: Start and stop scripts for Docker.
 - `Dockerfile`: Two stages. Builds the frontend, then runs the backend on port 8000.
 
-## Current milestone: Foundation V1 (PL-5)
+## Current milestone: Mr. Legal chat (PL-6)
+
+- Floating "Mr. Legal" chat on `/platform/`, scoped to the Mutual NDA.
+- Mr. Legal fills the NDA form from the conversation. The preview updates live, and the form stays editable.
+- Chat endpoint `POST /api/chat/mutual-nda` calls `openai/gpt-oss-120b` on CoreWeave via OpenRouter. It needs `OPENROUTER_API_KEY` in `.env`.
+- Field extraction is not reliable on every turn. See `Docs/lessons-learnt.md`.
+
+## Foundation V1 (PL-5)
 
 - Fake login at `/`. No credentials are checked; sign in opens the platform.
-- Platform at `/platform/` (the Mutual NDA creator, unchanged).
 - Temporary SQLite database, created from scratch when missing. Path set by `DATABASE_PATH`.
 - Health check at `/api/health`.
 
