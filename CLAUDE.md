@@ -8,7 +8,7 @@ The available documents are covered in the catalog.json file in the project root
 
 @catalog.json
 
-Current state: all 11 supported documents are built. The platform is a Mr. Legal AI chat beside a live preview, and the chat fills in the document's fields. Requests for unsupported documents get limited help: Mr. Legal drafts the closest supported document. Sign in with a session cookie and an admin seeded from `.env` (PL-8 step 1). No sign-up or document persistence yet. See "Implementation status" at the end of this file.
+Current state: all 11 supported documents are built. The platform is a Mr. Legal AI chat beside a live preview, and the chat fills in the document's fields. Requests for unsupported documents get limited help: Mr. Legal drafts the closest supported document. Users sign up or sign in with a one-hour session cookie. An admin seeded from `.env` manages user activation. Saved documents are not built yet (PL-8 step 3). See "Implementation status" at the end of this file.
 
 ## Development process
 
@@ -41,8 +41,8 @@ The entire project should be packaged into a Docker container.
 The backend should be in backend/ and be a uv project, using FastAPI.  
 The frontend should be in frontend/  
 The database should use SQLLite as a seperate volume and be created from scratch when the Docker container is brought up without volume.  
-Use the SEED_USERNAME and SEED_PASSWORD parameters in .env file to create Admin User when the Applicataion is created for first time. *(Done in PL-8 step 1: seeded when the `users` table is empty.)*  
-Provision should be provided allowing for a users table with sign up and sign in. *(Users table and sign in done; sign up not yet built.)*  
+Use the SEED_USERNAME and SEED_PASSWORD parameters in .env file to create Admin User when the Applicataion is created for first time. *(Done: seeded when the `users` table is empty.)*  
+Provision should be provided allowing for a users table with sign up and sign in. *(Done: users table, sign up, sign in, one-hour sessions, admin activate/deactivate.)*  
 The frontend is statically exported (Next.js `output: "export"`) and served by FastAPI. *(Done.)*  
 There should be scripts in scripts/ for:  
 ```bash
@@ -71,11 +71,12 @@ Backend available at http://localhost:8000
 
 ## Implementation status (as of 2026-10-11)
 
-PL-8 (Multiple Users & Final Push) is split into four PRs. Step 1 (seed admin, sign in, sessions, auth on `/api/chat`) is built. Steps 2-4 are not yet built: sign up and admin page, saved documents, and polish with the disclaimer.
-
 Stack: Next.js 16.4 + React 19.3 (`frontend/`, static export), FastAPI on uv (`backend/`), SQLite, Docker.
 
-Jira and git status: PL-5 (Foundation V1), PL-6 (Mr. Legal for the NDA) and PL-7 (all documents) are Done. PR #8 and PR #9 are merged and closed on GitHub (merged 2026-10-11).
+Jira and git status:
+- PL-5 (Foundation V1), PL-6 (Mr. Legal for the NDA) and PL-7 (all documents) are Done. PR #8 and PR #9 are merged and closed on GitHub (merged 2026-10-11).
+- PL-8 (Support Multiple Users & Final Push) is In Progress, split into four PRs. Step 1 (PR #10, sign-in and sessions) and step 2 (PR #11, sign-up and admin) are merged into `main` and pushed. PR #10 closed as merged on GitHub. PR #11 was merged locally (`20f9b84`) and commented, then closed on GitHub without the merged flag, because its base was the step-1 branch.
+- Steps 3 (saved documents) and 4 (polish and disclaimer) are not yet built.
 
 Testing: run Docker tests from a freshly built image, then stop and wipe the container, image and volume (`scripts/stop-windows-wipe-volumne.ps1`).
 
@@ -83,18 +84,30 @@ Built:
 - **Templates (PL-2):** 12 entries in `catalog.json` cover 11 documents. The Mutual NDA is two files (cover page and standard terms).
 - **Mutual NDA (PL-4):** `frontend/lib/nda.ts` builds the NDA cover page and document, unchanged in PL-7.
 - **Document registry (PL-7):** `templates/documents.json` lists the 11 documents, their template files and their fields. `backend/src/prelegal_backend/documents.py` loads it, and `frontend/lib/templates.ts` reads it at build time. `frontend/lib/documents.ts` maps chat values onto each preview.
-- **Platform (PL-4, PL-7):** `/platform/` is a Mr. Legal chat panel (`frontend/components/ChatPanel.tsx`) beside a preview (`frontend/components/DocumentPreview.tsx`), with `Platform.tsx` holding the state. The chat replaces the form. Users cannot edit fields by hand.
-- **Foundation V1 (PL-5):** fake login at `/` (`LoginForm.tsx`, no credential check, opens `/platform/`). `backend/src/prelegal_backend/main.py` serves `/api/health` and the static frontend. `db.py` creates the `users` table from scratch at `DATABASE_PATH` (default `data/prelegal.db`; Docker volume `prelegal-data` at `/app/data`).
-- **Mr. Legal chat (PL-6, PL-7):** introduces itself, lists the supported documents, asks one question per reply and fills the preview after each answer. Vague answers get a clarifying question. Replies render as Markdown. Chat history lives in the page session only. Backend `POST /api/chat` (no auth yet). Verified in Docker: 10 of 10 end-to-end checks, 23 of 23 backend tests (21 unit, 2 live LLM), 38 of 38 frontend tests, and 5 of 5 three-turn NDA conversations over HTTP. One live run hit an upstream CoreWeave rate limit and returned 503; a rerun passed.
-- **Docker and scripts:** two-stage Dockerfile on port 8000. The start scripts pass `.env` into the container. Windows has start, stop and wipe scripts. Mac and Linux have start and stop only.
-- **Tests:** backend `cd backend && uv run pytest` (21 unit tests, LLM mocked; the registry is checked against `catalog.json`, so run in Docker with that file mounted, see `Docs/help.md`). Live LLM checks: `RUN_LIVE_TESTS=1 uv run pytest tests/test_chat_live.py` (needs `OPENROUTER_API_KEY`). Frontend `cd frontend && npm test` (Vitest, `__tests__/`).
+- **Platform (PL-4, PL-7):** `/platform/` is a Mr. Legal chat panel (`frontend/components/ChatPanel.tsx`) beside a preview (`frontend/components/DocumentPreview.tsx`), with `Platform.tsx` holding the state. The chat replaces the form. Users cannot edit fields by hand. `PlatformShell.tsx` wraps the page: it shows the header with the signed-in username, a Users link for the admin, and Sign out, and it sends signed-out visitors to `/`.
+- **Login and sign-up (PL-5, PL-8 steps 1-2):** `/` is the sign-in form (`LoginForm.tsx`). `/signup/` creates an account (`SignupForm.tsx`) and signs it in. Backend `backend/src/prelegal_backend/auth.py`:
+  - Passwords are salted scrypt hashes (stdlib `hashlib.scrypt`).
+  - Sessions are opaque random tokens. Only their SHA-256 is stored, in the `sessions` table, with `expires_at` one hour after sign in. The cookie is `prelegal_session`, HttpOnly, SameSite=Lax, Max-Age 3600.
+  - Logout deletes the session. Deactivated accounts lose their sessions at once, because the session check also requires `is_active`.
+  - Endpoints: `POST /api/auth/login`, `POST /api/auth/signup` (201; 409 if the username is taken; 422 if the password is under 8 characters), `POST /api/auth/logout` (204), `GET /api/auth/me`.
+  - The admin is seeded once from `SEED_USERNAME` / `SEED_PASSWORD` when the `users` table is empty, with `is_admin = 1`.
+- **Admin (PL-8 step 2):** `backend/src/prelegal_backend/admin.py`. `GET /api/admin/users` and `PATCH /api/admin/users/{id}` (body `{isActive}`) are admin-only (403 otherwise). The admin cannot deactivate their own account (400). `/admin/` (`AdminPanel.tsx`) lists accounts with Activate and Deactivate buttons and sends non-admins to `/platform/`.
+- **Foundation V1 (PL-5):** `backend/src/prelegal_backend/main.py` serves `/api/health`, the auth and admin routers, and the static frontend. `db.py` creates the `users` and `sessions` tables from scratch at `DATABASE_PATH` (default `data/prelegal.db`; Docker volume `prelegal-data` at `/app/data`). Tables are not altered, so a volume created before PL-8 must be wiped.
+- **Mr. Legal chat (PL-6, PL-7):** introduces itself, lists the supported documents, asks one question per reply and fills the preview after each answer. Vague answers get a clarifying question. Replies render as Markdown. Chat history lives in the page session only. Backend `POST /api/chat` requires a signed-in session (PL-8 step 1). Earlier PL-7 Docker verification: 10 of 10 end-to-end checks and 5 of 5 three-turn NDA conversations over HTTP. One live run hit an upstream CoreWeave rate limit and returned 503; a rerun passed.
+- **Docker and scripts:** two-stage Dockerfile on port 8000. The start scripts pass `.env` into the container. Windows has start, stop and wipe scripts. Mac and Linux have start and stop only. `.env` seed values must have no quotes, because Docker `--env-file` keeps them (see `Docs/lessons-learnt.md`).
+- **Tests:** backend 44 unit tests on host, 46 in Docker including the 2 live LLM tests (`RUN_LIVE_TESTS=1`). Frontend 50 tests (`cd frontend && npm test`, Vitest, `__tests__/`).
+
+Verified in Docker for PL-8:
+- Step 1 (PR #10): sign-in, admin seed, cookie lifetime, auth on chat, logout, and sign-in after a container restart.
+- Step 2 (PR #11): 15 of 15 checks over HTTP covering sign-up, admin routes, self-deactivation, deactivation ending a live session, reactivation, and the pages. The container log had no errors.
 
 Not yet built:
+- PL-8 step 3: saved documents. Users can reopen and edit their own documents from a "My documents" list at `/platform/?doc=<id>`.
+- PL-8 step 4: colour polish across screens and the draft disclaimer on the sign-in page and under the preview.
 - Legal review of the 10 non-NDA field lists in `templates/documents.json`. They were drafted from the template titles and need a lawyer's check.
-- Sign up (PL-8 step 2) and the admin activate/deactivate page (step 2).
-- Document persistence.
 - Mac and Linux wipe scripts.
 - Mr. Legal reliability: the model sometimes skips a detail the user already gave (e.g. purpose), and it can return invalid JSON at temperature 0. Invalid JSON is not retried, so that turn fails with HTTP 500. Only rate limits are retried.
+- Session cleanup: expired rows stay in the `sessions` table. They are ignored, so cleanup is not urgent.
 
 Docs: `Docs/Readme.md` and `Docs/help.md` describe the running milestone.
 
