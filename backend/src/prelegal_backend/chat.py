@@ -6,10 +6,11 @@ import unicodedata
 from typing import Literal
 
 import litellm
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 
+from prelegal_backend.auth import current_user
 from prelegal_backend.documents import DOCUMENTS, DOCUMENTS_BY_ID, Document, DocumentField
 
 MODEL = "openrouter/openai/gpt-oss-120b"
@@ -24,7 +25,7 @@ DATE_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}")
 
 DocumentId = Literal[tuple(DOCUMENTS_BY_ID)]  # type: ignore[valid-type]
 
-router = APIRouter(prefix="/api/chat", tags=["chat"])
+router = APIRouter(prefix="/api/chat", tags=["chat"], dependencies=[Depends(current_user)])
 
 SYSTEM_PROMPT = """You are Mr. Legal, a friendly assistant who helps the user draft legal agreements.
 Hold a natural, friendly conversation. Ask only one question per reply: the most important missing detail, phrased conversationally, with a brief acknowledgement of what the user just told you. Do not list several questions at once. Never ask for a detail that is already set.

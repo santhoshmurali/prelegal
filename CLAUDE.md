@@ -8,7 +8,7 @@ The available documents are covered in the catalog.json file in the project root
 
 @catalog.json
 
-Current state: all 11 supported documents are built. The platform is a Mr. Legal AI chat beside a live preview, and the chat fills in the document's fields. Requests for unsupported documents get limited help: Mr. Legal drafts the closest supported document. Fake login only, no document persistence. See "Implementation status" at the end of this file.
+Current state: all 11 supported documents are built. The platform is a Mr. Legal AI chat beside a live preview, and the chat fills in the document's fields. Requests for unsupported documents get limited help: Mr. Legal drafts the closest supported document. Sign in with a session cookie and an admin seeded from `.env` (PL-8 step 1). No sign-up or document persistence yet. See "Implementation status" at the end of this file.
 
 ## Development process
 
@@ -41,8 +41,8 @@ The entire project should be packaged into a Docker container.
 The backend should be in backend/ and be a uv project, using FastAPI.  
 The frontend should be in frontend/  
 The database should use SQLLite as a seperate volume and be created from scratch when the Docker container is brought up without volume.  
-Use the SEED_USERNAME and SEED_PASSWORD parameters in .env file to create Admin User when the Applicataion is created for first time. *(Not yet implemented.)*  
-Provision should be provided allowing for a users table with sign up and sign in. *(Users table done; sign up and sign in not yet built.)*  
+Use the SEED_USERNAME and SEED_PASSWORD parameters in .env file to create Admin User when the Applicataion is created for first time. *(Done in PL-8 step 1: seeded when the `users` table is empty.)*  
+Provision should be provided allowing for a users table with sign up and sign in. *(Users table and sign in done; sign up not yet built.)*  
 The frontend is statically exported (Next.js `output: "export"`) and served by FastAPI. *(Done.)*  
 There should be scripts in scripts/ for:  
 ```bash
@@ -71,9 +71,11 @@ Backend available at http://localhost:8000
 
 ## Implementation status (as of 2026-10-11)
 
+PL-8 (Multiple Users & Final Push) is split into four PRs. Step 1 (seed admin, sign in, sessions, auth on `/api/chat`) is built. Steps 2-4 are not yet built: sign up and admin page, saved documents, and polish with the disclaimer.
+
 Stack: Next.js 16.4 + React 19.3 (`frontend/`, static export), FastAPI on uv (`backend/`), SQLite, Docker.
 
-Jira and git status: PL-5 (Foundation V1), PL-6 (Mr. Legal for the NDA) and PL-7 (all documents) are Done. PR #8 and PR #9 are merged into `main` locally and pushed. PR #8 and #9 are still open on GitHub, since the merges were local.
+Jira and git status: PL-5 (Foundation V1), PL-6 (Mr. Legal for the NDA) and PL-7 (all documents) are Done. PR #8 and PR #9 are merged and closed on GitHub (merged 2026-10-11).
 
 Testing: run Docker tests from a freshly built image, then stop and wipe the container, image and volume (`scripts/stop-windows-wipe-volumne.ps1`).
 
@@ -89,12 +91,10 @@ Built:
 
 Not yet built:
 - Legal review of the 10 non-NDA field lists in `templates/documents.json`. They were drafted from the template titles and need a lawyer's check.
-- Real sign up and sign in. `users.password_hash` exists but is unused.
-- `SEED_USERNAME` / `SEED_PASSWORD` admin seeding.
+- Sign up (PL-8 step 2) and the admin activate/deactivate page (step 2).
 - Document persistence.
 - Mac and Linux wipe scripts.
 - Mr. Legal reliability: the model sometimes skips a detail the user already gave (e.g. purpose), and it can return invalid JSON at temperature 0. Invalid JSON is not retried, so that turn fails with HTTP 500. Only rate limits are retried.
-- Auth on `/api/chat`.
 
 Docs: `Docs/Readme.md` and `Docs/help.md` describe the running milestone.
 

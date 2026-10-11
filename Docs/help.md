@@ -16,7 +16,13 @@ The wipe script also removes the volume, so the database is created fresh next t
 
 ## Sign in
 
-Any username and password opens the platform. Sign-in is a placeholder in V1.
+1. Open http://localhost:8000 and sign in with the admin account from `.env`.
+2. The admin is created once, on a fresh database, from `SEED_USERNAME` and `SEED_PASSWORD`. Write them without quotes in `.env`, for example `SEED_USERNAME=admin`.
+3. Use "Sign out" in the top bar to end the session. A session lasts one hour, then you sign in again.
+
+The platform and the chat need a signed-in session. Sign-up and the admin user page come in later steps.
+
+**After upgrading from an earlier build:** the database volume from before PL-8 has no admin, and its `users` table lacks the new columns. Run `scripts\stop-windows-wipe-volumne.ps1` and then the start script, so the database is created fresh.
 
 ## Draft a document with Mr. Legal
 
@@ -40,6 +46,7 @@ The chat needs `OPENROUTER_API_KEY` in `.env`. The start scripts pass `.env` int
   your network or antivirus re-signs HTTPS traffic with its own root certificate, and
   the build container does not trust it. Turn off HTTPS scanning for the build, or add
   the certificate to the image.
+- **Cannot sign in as the admin**: check that `SEED_USERNAME` and `SEED_PASSWORD` in `.env` have no quotes, then wipe and restart (the admin is only created on a fresh database).
 - **Port 8000 is busy**: stop the other process, or run the stop script first.
 - **"Mr. Legal is busy right now"**: the AI provider is rate-limited. Wait a moment and send the message again.
 - **Mr. Legal is unavailable**: check that `OPENROUTER_API_KEY` is set in `.env`, then restart the container with the start script.

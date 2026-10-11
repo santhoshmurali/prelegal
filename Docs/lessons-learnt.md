@@ -68,3 +68,13 @@
 **Fix:** LiteLLM retries 3 times (`num_retries`). If the limit persists, the endpoint returns 503 with "Mr. Legal is busy right now", not a generic 500. Over 5 sessions on the host with retries (before the 503 change), 4 completed and 1 hit the limit. In the container after the 503 change, 5 of 5 completed. One later live test still hit the limit and returned 503, and the rerun passed.
 
 **Lesson:** tell apart "our bug" from "upstream capacity". Check the provider's error message in the log before changing code. A pinned provider trades reliability for the quality and provider rules in CLAUDE.md, so the user-facing error should say "try again" rather than fail generically.
+
+## PL-8 step 1: seed admin not working in Docker
+
+**Symptom:** the admin from `SEED_USERNAME` / `SEED_PASSWORD` could not sign in through the container (HTTP 401), while the same flow passed on the host.
+
+**Root cause:** `.env` wrote the values in quotes (`SEED_USERNAME="adminuser"`). Bash `source` strips quotes, so the host test sent the plain name. Docker's `--env-file` does not strip quotes, so the container stored `"adminuser"` with the quote characters, and the sign-in did not match.
+
+**Fix:** write the seed values without quotes (`SEED_USERNAME=adminuser`). The seed only runs on an empty `users` table, so the volume had to be wiped to re-seed.
+
+**Lesson:** `--env-file` takes values literally. Check the value the container sees (`printenv` inside the container), not what a shell reads from the same file.
