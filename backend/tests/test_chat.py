@@ -85,6 +85,20 @@ def test_no_fields_are_set_until_a_document_is_chosen(client: TestClient, monkey
     assert response.json() == {"reply": "Which agreement do you need?", "documentId": None, "fieldUpdates": {}}
 
 
+def test_upstream_rate_limit_returns_503_with_a_retry_message(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async def acompletion(**_: Any) -> SimpleNamespace:
+        raise chat.litellm.RateLimitError(message="busy", llm_provider="openrouter", model=MODEL)
+
+    monkeypatch.setattr(chat.litellm, "acompletion", acompletion)
+
+    response = client.post("/api/chat", json=REQUEST_BODY)
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Mr. Legal is busy right now. Please try again in a moment."
+
+
 def test_rejects_unknown_message_role(client: TestClient, fake_llm: dict[str, Any]) -> None:
     body = {"messages": [{"role": "system", "content": "x"}]}
 

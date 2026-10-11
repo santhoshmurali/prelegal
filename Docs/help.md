@@ -41,3 +41,18 @@ The chat needs `OPENROUTER_API_KEY` in `.env`. The start scripts pass `.env` int
   the build container does not trust it. Turn off HTTPS scanning for the build, or add
   the certificate to the image.
 - **Port 8000 is busy**: stop the other process, or run the stop script first.
+- **"Mr. Legal is busy right now"**: the AI provider is rate-limited. Wait a moment and send the message again.
+- **Mr. Legal is unavailable**: check that `OPENROUTER_API_KEY` is set in `.env`, then restart the container with the start script.
+
+## Run the tests in Docker
+
+Run the backend tests in a container from the built image. The registry test also needs `catalog.json`, which the image does not contain, so mount it:
+
+```powershell
+docker run --rm --env-file .env -e RUN_LIVE_TESTS=1 `
+  -v "${PWD}\backend\tests:/app/backend/tests:ro" `
+  -v "${PWD}\catalog.json:/app/catalog.json:ro" prelegal `
+  sh -c "uv run pytest -v -p no:cacheprovider"
+```
+
+Drop `-e RUN_LIVE_TESTS=1` to skip the two live LLM tests.

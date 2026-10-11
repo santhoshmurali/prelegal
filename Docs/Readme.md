@@ -34,6 +34,12 @@ cd backend
 uv run pytest
 ```
 
+Backend tests in Docker, with the live LLM tests and the registry check (see `Docs/help.md`):
+
+```powershell
+docker run --rm --env-file .env -e RUN_LIVE_TESTS=1 -v "${PWD}\backend\tests:/app/backend/tests:ro" -v "${PWD}\catalog.json:/app/catalog.json:ro" prelegal sh -c "uv run pytest -v -p no:cacheprovider"
+```
+
 Live LLM tests (need `OPENROUTER_API_KEY`):
 
 ```bash

@@ -27,6 +27,14 @@ There is an OPENROUTER_API_KEY in the .env file in the project root.
 
 Status: built for all supported documents (PL-6, PL-7). `backend/src/prelegal_backend/chat.py` calls `openai/gpt-oss-120b` via LiteLLM and OpenRouter, with CoreWeave as the only provider, and uses Structured Outputs. Reasoning effort is set in the OpenRouter request body, because LiteLLM rejects `reasoning_effort` for this model in the container. Field extraction is not reliable on every turn (see `Docs/lessons-learnt.md`).
 
+Mr. Legal contract (`POST /api/chat`):
+- Request: `{messages: [{role, content}], documentId, currentValues}`. The browser sends the full history and the current values on every turn. The backend keeps no state.
+- Response: `{reply, documentId, fieldUpdates}`. `documentId` is the chosen supported document, or null. `fieldUpdates` holds only the fields that changed this turn, already validated.
+- The model's prompt lists every supported document and its fields. The server drops unknown keys and checks each value against its field: fixed options, whole years, ISO dates, or clean text.
+- Unsupported requests: ask questions, then choose the closest supported document and say why. The model never refuses, and never writes document text in chat.
+- Upstream rate limits: LiteLLM retries 3 times. If CoreWeave still returns 429, the endpoint answers 503 with "Mr. Legal is busy right now", and the page asks the user to try again.
+- Env: `OPENROUTER_API_KEY` (required), `DOCUMENTS_PATH` (default `../templates/documents.json`), `DATABASE_PATH`, `STATIC_DIR`, `RUN_LIVE_TESTS=1` for the live LLM tests.
+
 ## Technical design
 
 The entire project should be packaged into a Docker container.  
@@ -71,9 +79,9 @@ Built:
 - **Document registry (PL-7):** `templates/documents.json` lists the 11 documents, their template files and their fields. `backend/src/prelegal_backend/documents.py` loads it, and `frontend/lib/templates.ts` reads it at build time. `frontend/lib/documents.ts` maps chat values onto each preview.
 - **Platform (PL-4, PL-7):** `/platform/` is a Mr. Legal chat panel (`frontend/components/ChatPanel.tsx`) beside a preview (`frontend/components/DocumentPreview.tsx`), with `Platform.tsx` holding the state. The chat replaces the form. Users cannot edit fields by hand.
 - **Foundation V1 (PL-5):** fake login at `/` (`LoginForm.tsx`, no credential check, opens `/platform/`). `backend/src/prelegal_backend/main.py` serves `/api/health` and the static frontend. `db.py` creates the `users` table from scratch at `DATABASE_PATH` (default `data/prelegal.db`; Docker volume `prelegal-data` at `/app/data`).
-- **Mr. Legal chat (PL-6, PL-7):** introduces itself, lists the supported documents, asks one question per reply and fills the preview after each answer. Vague answers get a clarifying question. Replies render as Markdown. Chat history lives in the page session only. Backend `POST /api/chat` (no auth yet). Verified in Docker: 10 of 10 end-to-end checks, 22 of 22 backend tests (incl. 2 live LLM tests), 38 of 38 frontend tests.
+- **Mr. Legal chat (PL-6, PL-7):** introduces itself, lists the supported documents, asks one question per reply and fills the preview after each answer. Vague answers get a clarifying question. Replies render as Markdown. Chat history lives in the page session only. Backend `POST /api/chat` (no auth yet). Verified in Docker: 10 of 10 end-to-end checks, 23 of 23 backend tests (21 unit, 2 live LLM), 38 of 38 frontend tests, and 5 of 5 three-turn NDA conversations over HTTP. One live run hit an upstream CoreWeave rate limit and returned 503; a rerun passed.
 - **Docker and scripts:** two-stage Dockerfile on port 8000. The start scripts pass `.env` into the container. Windows has start, stop and wipe scripts. Mac and Linux have start and stop only.
-- **Tests:** backend `cd backend && uv run pytest` (20 unit tests, LLM mocked; the registry is checked against `catalog.json`). Live LLM checks: `RUN_LIVE_TESTS=1 uv run pytest tests/test_chat_live.py` (needs `OPENROUTER_API_KEY`). Frontend `cd frontend && npm test` (Vitest, `__tests__/`).
+- **Tests:** backend `cd backend && uv run pytest` (21 unit tests, LLM mocked; the registry is checked against `catalog.json`, so run in Docker with that file mounted, see `Docs/help.md`). Live LLM checks: `RUN_LIVE_TESTS=1 uv run pytest tests/test_chat_live.py` (needs `OPENROUTER_API_KEY`). Frontend `cd frontend && npm test` (Vitest, `__tests__/`).
 
 Not yet built:
 - Legal review of the 10 non-NDA field lists in `templates/documents.json`. They were drafted from the template titles and need a lawyer's check.

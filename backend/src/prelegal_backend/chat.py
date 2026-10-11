@@ -6,7 +6,7 @@ import unicodedata
 from typing import Literal
 
 import litellm
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 
@@ -16,6 +16,8 @@ MODEL = "openrouter/openai/gpt-oss-120b"
 # CoreWeave only. Pinning the fp4 quantization garbled extracted values (see Docs/lessons-learnt.md).
 # Reasoning effort goes through OpenRouter's body field: LiteLLM rejects its reasoning_effort argument for this model.
 EXTRA_BODY = {"provider": {"only": ["coreweave"]}, "reasoning": {"effort": "low"}}
+# CoreWeave's shared pool is sometimes rate-limited (HTTP 429). Retry before failing the turn.
+RETRIES = 3
 
 YEARS_PATTERN = re.compile(r"[1-9]\d{0,2}")
 DATE_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}")
@@ -149,6 +151,7 @@ async def chat_turn(request: ChatRequest) -> ChatResponse:
         ],
         response_format=MrLegalTurn,
         extra_body=EXTRA_BODY,
+        num_retries=RETRIES,
     )
     turn = MrLegalTurn.model_validate_json(response.choices[0].message.content)
     document_id = turn.document_id or request.document_id
@@ -159,4 +162,7 @@ async def chat_turn(request: ChatRequest) -> ChatResponse:
 @router.post("")
 async def chat(request: ChatRequest) -> ChatResponse:
     """Chat with Mr. Legal about any supported legal document."""
-    return await chat_turn(request)
+    try:
+        return await chat_turn(request)
+    except litellm.RateLimitError as error:
+        raise HTTPException(status_code=503, detail="Mr. Legal is busy right now. Please try again in a moment.") from error

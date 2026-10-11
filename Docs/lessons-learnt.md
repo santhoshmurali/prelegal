@@ -58,3 +58,13 @@
 **Chat drafting text.** The model sometimes wrote the letter text into the chat reply, which duplicated the preview. Fix: the prompt says the chat never writes document text.
 
 **Test-only dependency.** The registry test reads `catalog.json` from the repository root, which is not in the image. The app does not need that file, so the Docker test run mounts it (`-v catalog.json:/app/catalog.json:ro`) instead of copying it into the image.
+
+## PL-7 re-test: upstream rate limits
+
+**Symptom:** a three-turn NDA conversation through the container failed on the third turn with HTTP 500. The log showed `Client error '429 Too Many Requests'` from OpenRouter, with the message "openai/gpt-oss-120b is temporarily rate-limited upstream" (provider CoreWeave).
+
+**Root cause:** the shared CoreWeave pool was saturated. The provider pin (`only: ["coreweave"]`) stops OpenRouter from routing to another provider, so the request could not fail over. This is not a bug in our code.
+
+**Fix:** LiteLLM retries 3 times (`num_retries`). If the limit persists, the endpoint returns 503 with "Mr. Legal is busy right now", not a generic 500. Over 5 sessions on the host with retries (before the 503 change), 4 completed and 1 hit the limit. In the container after the 503 change, 5 of 5 completed. One later live test still hit the limit and returned 503, and the rerun passed.
+
+**Lesson:** tell apart "our bug" from "upstream capacity". Check the provider's error message in the log before changing code. A pinned provider trades reliability for the quality and provider rules in CLAUDE.md, so the user-facing error should say "try again" rather than fail generically.
