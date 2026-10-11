@@ -10,7 +10,14 @@ A platform for drafting common legal agreements.
 - `scripts/`: Start and stop scripts for Docker.
 - `Dockerfile`: Two stages. Builds the frontend, then runs the backend on port 8000.
 
-## Current milestone: Mr. Legal for all supported documents (PL-7)
+## Current milestone: Multiple users, step 1 of 4 (PL-8)
+
+- Sign in with a session cookie (`POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`). Passwords are salted scrypt hashes.
+- The admin is seeded once from `SEED_USERNAME` / `SEED_PASSWORD` when the `users` table is empty.
+- `POST /api/chat` requires a signed-in session.
+- Still to come: sign-up, admin activate/deactivate page, saved documents, and the visual polish.
+
+## Mr. Legal for all supported documents (PL-7)
 
 - The platform is a chat with Mr. Legal beside a live preview. The chat replaces the form.
 - Mr. Legal introduces itself and lists the supported documents. It picks the document from the conversation and fills in its fields as the user answers.
@@ -21,7 +28,7 @@ A platform for drafting common legal agreements.
 
 ## Foundation V1 (PL-5)
 
-- Fake login at `/`. No credentials are checked; sign in opens the platform.
+- Login at `/`. The fake login from V1 is replaced by real sign-in in PL-8.
 - Temporary SQLite database, created from scratch when missing. Path set by `DATABASE_PATH`.
 - Health check at `/api/health`.
 

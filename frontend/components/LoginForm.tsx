@@ -1,15 +1,30 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FormEvent } from "react";
+import { FormEvent, useState } from "react";
 
-/** Temporary V1 login: no credentials are checked, it only opens the platform. */
+const LOGIN_ENDPOINT = "/api/auth/login";
+const INVALID_CREDENTIALS = "Invalid username or password.";
+const DEACTIVATED_ACCOUNT = "This account has been deactivated.";
+
+/** Signs the user in through the backend and opens the platform on success. */
 export default function LoginForm() {
   const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    router.push("/platform/");
+    const form = new FormData(event.currentTarget);
+    const response = await fetch(LOGIN_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: form.get("username"), password: form.get("password") }),
+    });
+    if (response.ok) {
+      router.push("/platform/");
+      return;
+    }
+    setError(response.status === 403 ? DEACTIVATED_ACCOUNT : INVALID_CREDENTIALS);
   }
 
   return (
@@ -32,6 +47,11 @@ export default function LoginForm() {
           className="rounded border border-zinc-300 px-3 py-2 font-normal"
         />
       </label>
+      {error && (
+        <p role="alert" className="text-sm text-red-600">
+          {error}
+        </p>
+      )}
       <button
         type="submit"
         className="rounded bg-[#753991] px-4 py-2 font-semibold text-white hover:opacity-90"

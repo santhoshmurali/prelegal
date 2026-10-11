@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from prelegal_backend import chat
+from prelegal_backend.auth import SessionUser, current_user
 from prelegal_backend.chat import MODEL, MrLegalTurn, router
 
 REQUEST_BODY: dict[str, Any] = {
@@ -24,6 +25,7 @@ def model_reply(content: str) -> SimpleNamespace:
 def client() -> TestClient:
     app = FastAPI()
     app.include_router(router)
+    app.dependency_overrides[current_user] = lambda: SessionUser(id=1, username="ana", is_admin=False)
     return TestClient(app)
 
 
