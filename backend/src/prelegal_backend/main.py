@@ -8,6 +8,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from prelegal_backend.chat import router as chat_router
 from prelegal_backend.db import database_path, init_database
 
 DEFAULT_STATIC_DIR = Path(os.environ.get("STATIC_DIR", "../frontend/out"))
@@ -27,6 +28,8 @@ def create_app(static_dir: Path = DEFAULT_STATIC_DIR) -> FastAPI:
     @app.get("/api/health")
     def health() -> dict[str, str]:
         return {"status": "ok"}
+
+    app.include_router(chat_router)
 
     if static_dir.is_dir():
         app.mount("/", StaticFiles(directory=static_dir, html=True), name="frontend")
