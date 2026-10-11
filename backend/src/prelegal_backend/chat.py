@@ -7,13 +7,17 @@ from typing import Literal
 
 import litellm
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 from prelegal_backend.auth import current_user
 from prelegal_backend.documents import DOCUMENTS, DOCUMENTS_BY_ID, Document, DocumentField
 
 MODEL = "openrouter/openai/gpt-oss-120b"
+# Caps keep one request from sending a huge prompt to the paid model.
+MAX_MESSAGES = 100
+MAX_MESSAGE_CHARS = 4000
+MAX_VALUE_CHARS = 2000
 # CoreWeave only. Pinning the fp4 quantization garbled extracted values (see Docs/lessons-learnt.md).
 # Reasoning effort goes through OpenRouter's body field: LiteLLM rejects its reasoning_effort argument for this model.
 EXTRA_BODY = {"provider": {"only": ["coreweave"]}, "reasoning": {"effort": "low"}}
@@ -71,12 +75,12 @@ class MrLegalTurn(CamelModel):
 
 class ChatMessage(CamelModel):
     role: Literal["user", "assistant"]
-    content: str
+    content: str = Field(max_length=MAX_MESSAGE_CHARS)
 
 
 class ChatRequest(CamelModel):
-    messages: list[ChatMessage]
-    document_id: str | None = None
+    messages: list[ChatMessage] = Field(max_length=MAX_MESSAGES)
+    document_id: DocumentId | None = None
     current_values: dict[str, str] = {}
 
 
@@ -111,7 +115,9 @@ def system_prompt(request: ChatRequest) -> str:
 
 
 def clean_text(value: str) -> str | None:
-    """Drop text containing invisible or non-space separator characters, which the model sometimes emits as noise."""
+    """Drop text that is too long or contains invisible or non-space separator characters the model sometimes emits as noise."""
+    if len(value) > MAX_VALUE_CHARS:
+        return None
     if any(unicodedata.category(char) in ("Cf", "Zs") and char != " " for char in value):
         return None
     return value

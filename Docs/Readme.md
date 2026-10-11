@@ -8,10 +8,11 @@ A platform for drafting common legal agreements.
 - `backend/`: FastAPI app (uv project). Serves `/api/*` and the static frontend.
 - `templates/`: Legal templates, and `documents.json`, the registry of supported documents and their fields.
 - `scripts/`: Start and stop scripts for Docker.
-- `Dockerfile`: Two stages. Builds the frontend, then runs the backend on port 8000.
+- `Dockerfile`: Two stages. Builds the frontend, then runs the backend on port 8000 as a non-root user.
 
-## Current milestone: Multiple users, steps 1-4 of 4 (PL-8)
+## Current milestone: Multiple users (PL-8, complete)
 
+- Security review (OWASP): unknown document ids return 422 instead of 500, chat and password inputs are length-capped, and the container runs as a non-root user. Open items are listed in `CLAUDE.md`.
 - Visual polish: brand colours from CLAUDE.md as theme tokens (`globals.css`), a light-only theme, and focus rings on inputs.
 - Draft disclaimer (`components/Disclaimer.tsx`) on the sign-in page and under the preview header.
 

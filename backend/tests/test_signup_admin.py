@@ -45,6 +45,10 @@ def test_signup_rejects_short_passwords(client: TestClient) -> None:
     assert sign_up(client, "ana", "short").status_code == 422
 
 
+def test_signup_rejects_oversized_passwords(client: TestClient) -> None:
+    assert sign_up(client, "ana", "x" * 10_000).status_code == 422
+
+
 def test_signup_rejects_a_taken_username(client: TestClient) -> None:
     sign_up(client, "ana", "long-enough-pass")
 
