@@ -8,7 +8,7 @@ The available documents are covered in the catalog.json file in the project root
 
 @catalog.json
 
-Current state: all 11 supported documents are built. The platform is a Mr. Legal AI chat beside a live preview, and the chat fills in the document's fields. Requests for unsupported documents get limited help: Mr. Legal drafts the closest supported document. Users sign up or sign in with a one-hour session cookie. An admin seeded from `.env` manages user activation. Each user's drafts are saved and can be reopened from "My documents" (PL-8 step 3). Only the polish and disclaimer remain (PL-8 step 4). See "Implementation status" at the end of this file.
+Current state: all 11 supported documents are built. The platform is a Mr. Legal AI chat beside a live preview, and the chat fills in the document's fields. Requests for unsupported documents get limited help: Mr. Legal drafts the closest supported document. Users sign up or sign in with a one-hour session cookie. An admin seeded from `.env` manages user activation. Each user's drafts are saved and can be reopened from "My documents" (PL-8 step 3). The visual polish and the draft disclaimer are in place (PL-8 step 4). See "Implementation status" at the end of this file.
 
 ## Development process
 
@@ -76,7 +76,9 @@ Stack: Next.js 16.4 + React 19.3 (`frontend/`, static export), FastAPI on uv (`b
 Jira and git status:
 - PL-5 (Foundation V1), PL-6 (Mr. Legal for the NDA) and PL-7 (all documents) are Done. PR #8 and PR #9 are merged and closed on GitHub (merged 2026-10-11).
 - PL-8 (Support Multiple Users & Final Push) is In Progress, split into four PRs. Step 1 (PR #10, sign-in and sessions) and step 2 (PR #11, sign-up and admin) are merged into `main` and pushed. PR #10 closed as merged on GitHub. PR #11 was merged locally (`20f9b84`) and commented, then closed on GitHub without the merged flag, because its base was the step-1 branch.
-- Step 3 (saved documents) is built on branch `PL-8-step-3-saved-documents`, PR pending. Step 4 (polish and disclaimer) is not yet built.
+- Step 3 (saved documents, PR #12) is merged into `main`. Step 4 (visual polish and disclaimer) is built on branch `PL-8-step-4-polish`, PR #13 pending. PL-8 is complete once PR #13 is merged.
+- Colours: `frontend/app/globals.css` defines the CLAUDE.md palette as Tailwind tokens (`text-navy`, `bg-secondary` for submit buttons, `text-primary`, `text-muted`, `accent`). The app is light-only.
+- Draft disclaimer: `frontend/components/Disclaimer.tsx`, shown on the sign-in page and under the preview header, kept in printed output.
 
 Testing: run Docker tests from a freshly built image, then stop and wipe the container, image and volume (`scripts/stop-windows-wipe-volumne.ps1`).
 
@@ -103,7 +105,6 @@ Verified in Docker for PL-8:
 - Step 2 (PR #11): 15 of 15 checks over HTTP covering sign-up, admin routes, self-deactivation, deactivation ending a live session, reactivation, and the pages. The container log had no errors.
 
 Not yet built:
-- PL-8 step 4: colour polish across screens and the draft disclaimer on the sign-in page and under the preview.
 - Legal review of the 10 non-NDA field lists in `templates/documents.json`. They were drafted from the template titles and need a lawyer's check.
 - Mac and Linux wipe scripts.
 - Mr. Legal reliability: the model sometimes skips a detail the user already gave (e.g. purpose), and it can return invalid JSON at temperature 0. Invalid JSON is not retried, so that turn fails with HTTP 500. Only rate limits are retried.

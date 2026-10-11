@@ -34,6 +34,8 @@ The admin sees a "Users" link in the top bar. It lists every account. Use "Deact
 
 ## Draft a document with Mr. Legal
 
+Every document is a draft. The sign-in page and the top of the preview say so. Have a qualified lawyer review a document before anyone signs it.
+
 1. Open the platform. Mr. Legal introduces itself and lists the agreements it supports.
 2. Describe what you need, for example "We want an NDA with Acme Ltd for evaluating a partnership, under Delaware law."
 3. Mr. Legal asks one question at a time about the next missing detail. Answer it, and the next question follows.

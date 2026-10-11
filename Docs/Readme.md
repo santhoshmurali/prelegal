@@ -10,7 +10,10 @@ A platform for drafting common legal agreements.
 - `scripts/`: Start and stop scripts for Docker.
 - `Dockerfile`: Two stages. Builds the frontend, then runs the backend on port 8000.
 
-## Current milestone: Multiple users, steps 1-3 of 4 (PL-8)
+## Current milestone: Multiple users, steps 1-4 of 4 (PL-8)
+
+- Visual polish: brand colours from CLAUDE.md as theme tokens (`globals.css`), a light-only theme, and focus rings on inputs.
+- Draft disclaimer (`components/Disclaimer.tsx`) on the sign-in page and under the preview header.
 
 - Saved documents (`/api/documents`, owner-only): drafts are saved as Mr. Legal picks a document and as values change. Reopen one from "My documents" or with `/platform/?doc=<id>`.
 
@@ -19,7 +22,6 @@ A platform for drafting common legal agreements.
 - `POST /api/chat` requires a signed-in session.
 - Sign up at `/signup/` (`POST /api/auth/signup`). New accounts are active and signed in at once.
 - Admin page `/admin/` lists accounts and activates or deactivates them (`/api/admin/*`, admin only).
-- Still to come: the visual polish with the disclaimer (step 4).
 
 ## Mr. Legal for all supported documents (PL-7)
 

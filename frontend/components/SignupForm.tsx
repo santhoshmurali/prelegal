@@ -30,17 +30,17 @@ export default function SignupForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
-      <label className="flex flex-col gap-1 text-sm font-medium text-[#032147]">
+      <label className="flex flex-col gap-1 text-sm font-medium text-navy">
         Username
         <input
           name="username"
           type="text"
           required
           autoComplete="username"
-          className="rounded border border-zinc-300 px-3 py-2 font-normal"
+          className="rounded border border-zinc-300 px-3 py-2 font-normal focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
       </label>
-      <label className="flex flex-col gap-1 text-sm font-medium text-[#032147]">
+      <label className="flex flex-col gap-1 text-sm font-medium text-navy">
         Password (at least {MIN_PASSWORD_LENGTH} characters)
         <input
           name="password"
@@ -48,7 +48,7 @@ export default function SignupForm() {
           required
           minLength={MIN_PASSWORD_LENGTH}
           autoComplete="new-password"
-          className="rounded border border-zinc-300 px-3 py-2 font-normal"
+          className="rounded border border-zinc-300 px-3 py-2 font-normal focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
       </label>
       {error && (
@@ -58,7 +58,7 @@ export default function SignupForm() {
       )}
       <button
         type="submit"
-        className="rounded bg-[#753991] px-4 py-2 font-semibold text-white hover:opacity-90"
+        className="rounded bg-secondary px-4 py-2 font-semibold text-white hover:opacity-90"
       >
         Create account
       </button>
