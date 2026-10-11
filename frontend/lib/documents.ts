@@ -30,7 +30,7 @@ export type ChatTurn = {
 };
 
 // The Mutual NDA keeps its own cover page; every other document uses the generic one.
-export const NDA_ID = "Mutual-NDA";
+const NDA_ID = "Mutual-NDA";
 
 export function applyUpdates(values: Values, updates: Values): Values {
   return { ...values, ...updates };
@@ -71,7 +71,7 @@ function detail(field: DocumentField, value: string | undefined): string {
 }
 
 // The template already starts with the document's own title, so only the key details are added above it.
-export function buildGenericDocument(doc: DocumentSpec, terms: string, values: Values): string {
+function buildGenericDocument(doc: DocumentSpec, terms: string, values: Values): string {
   const details = doc.fields.map((field) => detail(field, values[field.key])).join("\n");
   return `## Key details\n\n${details}\n\n---\n\n${terms}`;
 }

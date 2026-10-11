@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useState } from "react";
+import SignOutButton from "@/components/SignOutButton";
 
 const ME_ENDPOINT = "/api/auth/me";
-const LOGOUT_ENDPOINT = "/api/auth/logout";
 
 type SignedInUser = { username: string; isAdmin: boolean };
 
@@ -26,11 +26,6 @@ export default function PlatformShell({ children }: { children: ReactNode }) {
     loadUser();
   }, [router]);
 
-  async function signOut() {
-    await fetch(LOGOUT_ENDPOINT, { method: "POST" });
-    router.replace("/");
-  }
-
   if (!user) return null;
 
   return (
@@ -49,13 +44,7 @@ export default function PlatformShell({ children }: { children: ReactNode }) {
             </Link>
           )}
           <span className="text-navy">{user.username}</span>
-          <button
-            type="button"
-            onClick={signOut}
-            className="rounded border border-zinc-300 px-3 py-1.5 font-medium text-navy hover:bg-zinc-50"
-          >
-            Sign out
-          </button>
+          <SignOutButton />
         </div>
       </header>
       {children}

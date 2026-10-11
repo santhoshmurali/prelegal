@@ -68,10 +68,7 @@ def list_drafts(user: CurrentUser) -> list[DraftSummary]:
             "ORDER BY updated_at DESC, id DESC",
             (user.id,),
         ).fetchall()
-    return [
-        DraftSummary(id=row["id"], document_id=row["document_id"], title=row["title"], updated_at=row["updated_at"])
-        for row in rows
-    ]
+    return [DraftSummary.model_validate(dict(row)) for row in rows]
 
 
 @router.post("", status_code=201)

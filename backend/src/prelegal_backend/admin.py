@@ -2,7 +2,6 @@
 
 from contextlib import closing
 from typing import Annotated
-import sqlite3
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict
@@ -40,23 +39,12 @@ def require_admin(user: CurrentUser) -> SessionUser:
 AdminUser = Annotated[SessionUser, Depends(require_admin)]
 
 
-def to_account(row: sqlite3.Row) -> Account:
-    """Build the account shown on the admin page from a users row."""
-    return Account(
-        id=row["id"],
-        username=row["username"],
-        is_admin=bool(row["is_admin"]),
-        is_active=bool(row["is_active"]),
-        created_at=row["created_at"],
-    )
-
-
 @router.get("/users")
 def list_users(_admin: AdminUser) -> list[Account]:
     """Return every account, oldest first."""
     with closing(connect()) as connection:
         rows = connection.execute("SELECT * FROM users ORDER BY id").fetchall()
-    return [to_account(row) for row in rows]
+    return [Account.model_validate(dict(row)) for row in rows]
 
 
 @router.patch("/users/{user_id}")
@@ -69,4 +57,4 @@ def set_user_active(user_id: int, update: ActiveUpdate, admin: AdminUser) -> Acc
         row = connection.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
     if row is None:
         raise HTTPException(status_code=404, detail="No such user.")
-    return to_account(row)
+    return Account.model_validate(dict(row))

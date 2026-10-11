@@ -23,6 +23,10 @@ import {
 
 const PLATFORM_PATH = "/platform/";
 
+function showInAddressBar(draftId: number | null) {
+  window.history.replaceState(null, "", draftId === null ? PLATFORM_PATH : `${PLATFORM_PATH}?doc=${draftId}`);
+}
+
 export default function Platform({
   documents,
   templates,
@@ -40,29 +44,21 @@ export default function Platform({
   const doc = documents.find((candidate) => candidate.id === documentId) ?? null;
   const markdown = doc ? buildPreview(doc, templates[doc.template], values) : null;
 
-  const showDraft = useCallback((draft: Draft) => {
-    setDraftId(draft.id);
-    setDocumentId(draft.documentId);
-    setValues(draft.values);
+  /** Loads a draft, or a blank page when draft is null, and starts a fresh chat. */
+  const openDraft = useCallback((draft: Draft | null) => {
+    setDraftId(draft?.id ?? null);
+    setDocumentId(draft?.documentId ?? null);
+    setValues(draft?.values ?? {});
     setChatKey((key) => key + 1);
     setSaveError(null);
-    window.history.replaceState(null, "", `${PLATFORM_PATH}?doc=${draft.id}`);
+    showInAddressBar(draft?.id ?? null);
   }, []);
 
   useEffect(() => {
     listDrafts().then(setDrafts);
     const requestedId = new URLSearchParams(window.location.search).get("doc");
-    if (requestedId) getDraft(Number(requestedId)).then(showDraft);
-  }, [showDraft]);
-
-  function startNewDocument() {
-    setDraftId(null);
-    setDocumentId(null);
-    setValues({});
-    setChatKey((key) => key + 1);
-    setSaveError(null);
-    window.history.replaceState(null, "", PLATFORM_PATH);
-  }
+    if (requestedId) getDraft(Number(requestedId)).then(openDraft);
+  }, [openDraft]);
 
   async function saveDraft(chosenDocument: DocumentSpec, nextValues: Values) {
     const title = draftTitle(chosenDocument, nextValues);
@@ -73,7 +69,7 @@ export default function Platform({
           : await updateDraft(draftId, chosenDocument.id, title, nextValues);
       setDraftId(saved.id);
       setSaveError(null);
-      window.history.replaceState(null, "", `${PLATFORM_PATH}?doc=${saved.id}`);
+      showInAddressBar(saved.id);
       setDrafts(await listDrafts());
     } catch {
       setSaveError("Could not save this document. Your changes are shown but not saved yet.");
@@ -94,8 +90,8 @@ export default function Platform({
       <MyDocuments
         drafts={drafts}
         currentId={draftId}
-        onOpen={(id) => getDraft(id).then(showDraft)}
-        onNew={startNewDocument}
+        onOpen={(id) => getDraft(id).then(openDraft)}
+        onNew={() => openDraft(null)}
       />
       {saveError && (
         <p role="alert" className="mb-4 text-sm text-red-600">

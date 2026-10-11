@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import AdminPanel from "@/components/AdminPanel";
+import { fakeResponse } from "./helpers";
 
 const replace = vi.fn();
 const router = { replace };
@@ -9,10 +10,6 @@ const router = { replace };
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
 }));
-
-function json(status: number, body: unknown) {
-  return { ok: status < 400, status, json: async () => body } as Response;
-}
 
 const admin = { id: 1, username: "admin", isAdmin: true };
 const ana = { id: 2, username: "ana", isAdmin: false, isActive: true };
@@ -24,7 +21,7 @@ describe("AdminPanel", () => {
   });
 
   it("sends a signed-out visitor to the login page", async () => {
-    vi.mocked(fetch).mockResolvedValue(json(401, {}));
+    vi.mocked(fetch).mockResolvedValue(fakeResponse(401, {}));
 
     render(<AdminPanel />);
 
@@ -32,7 +29,7 @@ describe("AdminPanel", () => {
   });
 
   it("sends a signed-in non-admin to the platform", async () => {
-    vi.mocked(fetch).mockResolvedValue(json(200, { ...ana, isAdmin: false }));
+    vi.mocked(fetch).mockResolvedValue(fakeResponse(200, { ...ana, isAdmin: false }));
 
     render(<AdminPanel />);
 
@@ -41,9 +38,9 @@ describe("AdminPanel", () => {
 
   it("lists accounts and deactivates a user", async () => {
     vi.mocked(fetch)
-      .mockResolvedValueOnce(json(200, admin))
-      .mockResolvedValueOnce(json(200, [{ id: 1, username: "admin", isAdmin: true, isActive: true }, ana]))
-      .mockResolvedValueOnce(json(200, { ...ana, isActive: false }));
+      .mockResolvedValueOnce(fakeResponse(200, admin))
+      .mockResolvedValueOnce(fakeResponse(200, [{ id: 1, username: "admin", isAdmin: true, isActive: true }, ana]))
+      .mockResolvedValueOnce(fakeResponse(200, { ...ana, isActive: false }));
     render(<AdminPanel />);
 
     await userEvent.click(await screen.findByRole("button", { name: "Deactivate" }));
@@ -58,9 +55,9 @@ describe("AdminPanel", () => {
 
   it("shows the reason when the change is refused", async () => {
     vi.mocked(fetch)
-      .mockResolvedValueOnce(json(200, admin))
-      .mockResolvedValueOnce(json(200, [ana]))
-      .mockResolvedValueOnce(json(400, { detail: "You cannot deactivate your own account." }));
+      .mockResolvedValueOnce(fakeResponse(200, admin))
+      .mockResolvedValueOnce(fakeResponse(200, [ana]))
+      .mockResolvedValueOnce(fakeResponse(400, { detail: "You cannot deactivate your own account." }));
     render(<AdminPanel />);
 
     await userEvent.click(await screen.findByRole("button", { name: "Deactivate" }));

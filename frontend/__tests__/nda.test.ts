@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   buildCoverPage,
@@ -7,13 +5,10 @@ import {
   defaultFields,
   escapeMarkdown,
   isValidYears,
-  localDateString,
 } from "@/lib/nda";
+import { templateText } from "./helpers";
 
-const terms = readFileSync(
-  path.join(__dirname, "..", "..", "templates", "Mutual-NDA.md"),
-  "utf8",
-);
+const terms = templateText("Mutual-NDA.md");
 const fields = () => defaultFields("2026-10-09");
 
 describe("buildCoverPage", () => {
@@ -118,15 +113,5 @@ describe("buildDocument", () => {
     const doc = buildDocument(terms, fields());
     expect(doc).toContain(terms);
     expect(doc).toContain("Governing Law and Jurisdiction");
-  });
-});
-
-describe("localDateString", () => {
-  it("uses local calendar fields, not UTC", () => {
-    expect(localDateString(new Date(2026, 9, 9, 0, 30))).toBe("2026-10-09");
-    expect(localDateString(new Date(2026, 9, 9, 23, 30))).toBe("2026-10-09");
-  });
-  it("zero-pads month and day", () => {
-    expect(localDateString(new Date(2026, 0, 5))).toBe("2026-01-05");
   });
 });

@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import SignOutButton from "@/components/SignOutButton";
 
 const ME_ENDPOINT = "/api/auth/me";
-const LOGOUT_ENDPOINT = "/api/auth/logout";
 const USERS_ENDPOINT = "/api/admin/users";
 
 type SignedInUser = { id: number; username: string; isAdmin: boolean };
@@ -51,11 +51,6 @@ export default function AdminPanel() {
     setAccounts((current) => current.map((item) => (item.id === updated.id ? updated : item)));
   }
 
-  async function signOut() {
-    await fetch(LOGOUT_ENDPOINT, { method: "POST" });
-    router.replace("/");
-  }
-
   if (!me) return null;
 
   return (
@@ -68,9 +63,7 @@ export default function AdminPanel() {
         <div className="flex items-center gap-4 text-sm">
           <Link href="/platform/" className="font-medium text-primary">Platform</Link>
           <span className="text-navy">{me.username}</span>
-          <button type="button" onClick={signOut} className="rounded border border-zinc-300 px-3 py-1.5 font-medium text-navy hover:bg-zinc-50">
-            Sign out
-          </button>
+          <SignOutButton />
         </div>
       </header>
       <main className="mx-auto max-w-4xl p-6">

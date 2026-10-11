@@ -1,25 +1,15 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Platform from "@/components/Platform";
-import type { DocumentSpec } from "@/lib/documents";
 import type { Draft, DraftSummary } from "@/lib/savedDocuments";
+import { documents, fakeResponse, templateText } from "./helpers";
 
-const templatesDir = path.join(__dirname, "..", "..", "templates");
-const documents: DocumentSpec[] = JSON.parse(readFileSync(path.join(templatesDir, "documents.json"), "utf8"));
-const templates = Object.fromEntries(
-  documents.map((doc) => [doc.template, readFileSync(path.join(templatesDir, doc.template), "utf8")]),
-);
+const templates = Object.fromEntries(documents.map((doc) => [doc.template, templateText(doc.template)]));
 
 const SAVED_ID = 7;
 const NOW = "2026-10-11T10:00:00+00:00";
 const NDA_TITLE = "Mutual Non-Disclosure Agreement - Ana";
-
-function json(body: unknown, status = 200) {
-  return { ok: status < 400, status, json: async () => body } as Response;
-}
 
 /**
  * Answers the platform's requests by URL and method: chat replies come from the queue,
@@ -33,13 +23,13 @@ function mockApi(chatBodies: unknown[], drafts: DraftSummary[] = [], openable: D
     const method = init?.method ?? "GET";
     const body = init?.body ? JSON.parse(String(init.body)) : undefined;
     requests.push({ method, url, body });
-    if (url === "/api/chat") return json(replies.shift());
-    if (url === "/api/documents" && method === "GET") return json(drafts);
+    if (url === "/api/chat") return fakeResponse(200, replies.shift());
+    if (url === "/api/documents" && method === "GET") return fakeResponse(200, drafts);
     if (url === "/api/documents" && method === "POST") {
-      return json({ id: SAVED_ID, updatedAt: NOW, ...body }, 201);
+      return fakeResponse(201, { id: SAVED_ID, updatedAt: NOW, ...body });
     }
-    if (url === `/api/documents/${SAVED_ID}` && method === "PUT") return json({ id: SAVED_ID, updatedAt: NOW, ...body });
-    if (openable && url === `/api/documents/${openable.id}`) return json(openable);
+    if (url === `/api/documents/${SAVED_ID}` && method === "PUT") return fakeResponse(200, { id: SAVED_ID, updatedAt: NOW, ...body });
+    if (openable && url === `/api/documents/${openable.id}`) return fakeResponse(200, openable);
     throw new Error(`unexpected request: ${method} ${url}`);
   });
   return requests;

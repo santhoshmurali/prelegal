@@ -7,11 +7,7 @@ Run with OPENROUTER_API_KEY set:
 import os
 
 import pytest
-from fastapi import FastAPI
 from fastapi.testclient import TestClient
-
-from prelegal_backend.auth import SessionUser, current_user
-from prelegal_backend.chat import router
 
 pytestmark = pytest.mark.skipif(
     os.environ.get("RUN_LIVE_TESTS") != "1",
@@ -19,15 +15,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-@pytest.fixture
-def client() -> TestClient:
-    app = FastAPI()
-    app.include_router(router)
-    app.dependency_overrides[current_user] = lambda: SessionUser(id=1, username="ana", is_admin=False)
-    return TestClient(app)
-
-
-def test_positive_request_picks_the_nda_and_fills_its_fields(client: TestClient) -> None:
+def test_positive_request_picks_the_nda_and_fills_its_fields(chat_client: TestClient) -> None:
     body = {
         "messages": [
             {
@@ -39,7 +27,7 @@ def test_positive_request_picks_the_nda_and_fills_its_fields(client: TestClient)
         "currentValues": {},
     }
 
-    response = client.post("/api/chat", json=body)
+    response = chat_client.post("/api/chat", json=body)
 
     assert response.status_code == 200
     payload = response.json()
@@ -47,7 +35,7 @@ def test_positive_request_picks_the_nda_and_fills_its_fields(client: TestClient)
     assert "Delaware" in payload["fieldUpdates"]["governingLaw"]
 
 
-def test_unsupported_request_asks_questions_and_fills_nothing(client: TestClient) -> None:
+def test_unsupported_request_asks_questions_and_fills_nothing(chat_client: TestClient) -> None:
     body = {
         "messages": [
             {
@@ -58,7 +46,7 @@ def test_unsupported_request_asks_questions_and_fills_nothing(client: TestClient
         "currentValues": {},
     }
 
-    response = client.post("/api/chat", json=body)
+    response = chat_client.post("/api/chat", json=body)
 
     assert response.status_code == 200
     payload = response.json()

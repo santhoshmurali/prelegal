@@ -24,24 +24,24 @@ export async function getDraft(id: number): Promise<Draft> {
   return readJson(await fetch(`${DRAFTS_ENDPOINT}/${id}`));
 }
 
-export async function createDraft(documentId: string, title: string, values: Values): Promise<Draft> {
+type DraftContent = { documentId: string; title: string; values: Values };
+
+async function sendDraft(url: string, method: "POST" | "PUT", content: DraftContent): Promise<Draft> {
   return readJson(
-    await fetch(DRAFTS_ENDPOINT, {
-      method: "POST",
+    await fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ documentId, title, values }),
+      body: JSON.stringify(content),
     }),
   );
 }
 
+export async function createDraft(documentId: string, title: string, values: Values): Promise<Draft> {
+  return sendDraft(DRAFTS_ENDPOINT, "POST", { documentId, title, values });
+}
+
 export async function updateDraft(id: number, documentId: string, title: string, values: Values): Promise<Draft> {
-  return readJson(
-    await fetch(`${DRAFTS_ENDPOINT}/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ documentId, title, values }),
-    }),
-  );
+  return sendDraft(`${DRAFTS_ENDPOINT}/${id}`, "PUT", { documentId, title, values });
 }
 
 // The document name, with the first party's name when Mr. Legal has it, so drafts are easy to tell apart.

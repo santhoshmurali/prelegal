@@ -2,16 +2,13 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import SignupForm from "@/components/SignupForm";
+import { fakeResponse } from "./helpers";
 
 const push = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
 }));
-
-function response(status: number) {
-  return { ok: status < 400, status, json: async () => ({}) } as Response;
-}
 
 async function signUp(username: string, password: string) {
   const user = userEvent.setup();
@@ -28,7 +25,7 @@ describe("SignupForm", () => {
   });
 
   it("creates the account and opens the platform", async () => {
-    vi.mocked(fetch).mockResolvedValue(response(201));
+    vi.mocked(fetch).mockResolvedValue(fakeResponse(201));
 
     await signUp("ana", "long-enough-pass");
 
@@ -37,7 +34,7 @@ describe("SignupForm", () => {
   });
 
   it("says when the username is taken", async () => {
-    vi.mocked(fetch).mockResolvedValue(response(409));
+    vi.mocked(fetch).mockResolvedValue(fakeResponse(409));
 
     await signUp("admin", "long-enough-pass");
 
@@ -46,7 +43,7 @@ describe("SignupForm", () => {
   });
 
   it("says when the password is too short", async () => {
-    vi.mocked(fetch).mockResolvedValue(response(422));
+    vi.mocked(fetch).mockResolvedValue(fakeResponse(422));
 
     await signUp("ana", "short");
 
