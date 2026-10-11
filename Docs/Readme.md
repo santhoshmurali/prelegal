@@ -10,12 +10,14 @@ A platform for drafting common legal agreements.
 - `scripts/`: Start and stop scripts for Docker.
 - `Dockerfile`: Two stages. Builds the frontend, then runs the backend on port 8000.
 
-## Current milestone: Multiple users, step 1 of 4 (PL-8)
+## Current milestone: Multiple users, steps 1-2 of 4 (PL-8)
 
 - Sign in with a session cookie (`POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`). Passwords are salted scrypt hashes.
 - The admin is seeded once from `SEED_USERNAME` / `SEED_PASSWORD` when the `users` table is empty.
 - `POST /api/chat` requires a signed-in session.
-- Still to come: sign-up, admin activate/deactivate page, saved documents, and the visual polish.
+- Sign up at `/signup/` (`POST /api/auth/signup`). New accounts are active and signed in at once.
+- Admin page `/admin/` lists accounts and activates or deactivates them (`/api/admin/*`, admin only).
+- Still to come: saved documents, and the visual polish with the disclaimer.
 
 ## Mr. Legal for all supported documents (PL-7)
 

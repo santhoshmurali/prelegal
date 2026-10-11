@@ -8,6 +8,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from prelegal_backend.admin import router as admin_router
 from prelegal_backend.auth import router as auth_router, seed_admin_if_empty
 from prelegal_backend.chat import router as chat_router
 from prelegal_backend.db import database_path, init_database
@@ -32,6 +33,7 @@ def create_app(static_dir: Path = DEFAULT_STATIC_DIR) -> FastAPI:
         return {"status": "ok"}
 
     app.include_router(auth_router)
+    app.include_router(admin_router)
     app.include_router(chat_router)
 
     if static_dir.is_dir():

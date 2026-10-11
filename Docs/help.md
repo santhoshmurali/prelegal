@@ -20,7 +20,15 @@ The wipe script also removes the volume, so the database is created fresh next t
 2. The admin is created once, on a fresh database, from `SEED_USERNAME` and `SEED_PASSWORD`. Write them without quotes in `.env`, for example `SEED_USERNAME=admin`.
 3. Use "Sign out" in the top bar to end the session. A session lasts one hour, then you sign in again.
 
-The platform and the chat need a signed-in session. Sign-up and the admin user page come in later steps.
+The platform and the chat need a signed-in session.
+
+### Create an account
+
+Click "Create an account" on the sign-in page. Enter a username and a password of at least 8 characters. You are signed in straight away.
+
+### Manage users (admin only)
+
+The admin sees a "Users" link in the top bar. It lists every account. Use "Deactivate" to stop a user from signing in; their open session ends at once. Use "Activate" to allow them back. The admin cannot deactivate their own account.
 
 **After upgrading from an earlier build:** the database volume from before PL-8 has no admin, and its `users` table lacks the new columns. Run `scripts\stop-windows-wipe-volumne.ps1` and then the start script, so the database is created fresh.
 

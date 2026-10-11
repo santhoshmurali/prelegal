@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useState } from "react";
 
@@ -42,6 +43,11 @@ export default function PlatformShell({ children }: { children: ReactNode }) {
           </p>
         </div>
         <div className="flex items-center gap-4 text-sm">
+          {user.isAdmin && (
+            <Link href="/admin/" className="font-medium text-[#209dd7]">
+              Users
+            </Link>
+          )}
           <span className="text-[#032147]">{user.username}</span>
           <button
             type="button"
